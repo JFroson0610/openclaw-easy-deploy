@@ -13,23 +13,27 @@ curl -fsSL https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/ma
 脚本会自动完成以下步骤：
 
 1. **检测系统环境**
-   - 操作系统类型和版本
-   - CPU 架构
-   - 磁盘空间
+   - 操作系统类型和版本（macOS / Linux）
+   - CPU 架构（x86_64 / arm64）
 
-2. **安装依赖**
-   - Node.js 22+（如果未安装）
-   - Docker 和 Docker Compose（如果未安装）
+2. **安装 Node.js 22+**（如果未安装）
+   - macOS：优先通过 Homebrew 安装，回退到 nvm
+   - Linux：通过 nvm 安装
 
-3. **配置 OpenClaw**
-   - 自动生成 Gateway Token
-   - 引导配置 AI 模型 API Key
-   - 生成配置文件
+3. **安装 OpenClaw**
+   - 执行 `npm install -g openclaw@latest`
+   - 安装最新版本到系统全局
 
-4. **启动服务**
-   - 下载 OpenClaw
-   - 启动 Docker 容器
-   - 验证安装
+4. **运行官方配置向导**
+   - 执行 `openclaw onboard --install-daemon`
+   - **向导会引导你**：选择 AI 模型、输入 API Key、生成 Token
+   - 自动安装守护进程（macOS：LaunchAgent，Linux：systemd）
+   - 启动 Gateway 服务
+
+5. **验证安装**
+   - 确认 `openclaw` 命令可用
+   - 检查 Gateway 端口是否在监听
+   - HTTP 健康检查
 
 ## 配置 API 密钥
 
@@ -61,8 +65,7 @@ curl -fsSL https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/ma
 #### WhatsApp
 
 ```bash
-cd ~/.openclaw
-docker compose run --rm openclaw-cli channels login
+openclaw channels login --channel whatsapp
 ```
 
 扫描二维码登录 WhatsApp。
@@ -70,15 +73,13 @@ docker compose run --rm openclaw-cli channels login
 #### Telegram
 
 ```bash
-cd ~/.openclaw
-docker compose run --rm openclaw-cli channels add --channel telegram --token YOUR_BOT_TOKEN
+openclaw channels add --channel telegram --token YOUR_BOT_TOKEN
 ```
 
 #### Discord
 
 ```bash
-cd ~/.openclaw
-docker compose run --rm openclaw-cli channels add --channel discord --token YOUR_BOT_TOKEN
+openclaw channels add --channel discord --token YOUR_BOT_TOKEN
 ```
 
 ## 管理服务
@@ -86,32 +87,37 @@ docker compose run --rm openclaw-cli channels add --channel discord --token YOUR
 ### 查看状态
 
 ```bash
-docker compose -f ~/.openclaw/docker-compose.yml ps
+openclaw gateway status
 ```
 
 ### 查看日志
 
 ```bash
-docker compose -f ~/.openclaw/docker-compose.yml logs -f
+openclaw gateway logs
 ```
 
-### 停止服务
+### 停止守护进程
 
 ```bash
-docker compose -f ~/.openclaw/docker-compose.yml down
+openclaw daemon stop
 ```
 
-### 重启服务
+### 启动守护进程
 
 ```bash
-docker compose -f ~/.openclaw/docker-compose.yml restart
+openclaw daemon start
 ```
 
-### 更新
+### 更新到最新版
 
 ```bash
-cd ~/.openclaw
-./docker-setup.sh
+npm update -g openclaw
+```
+
+### 重新运行配置向导
+
+```bash
+openclaw onboard
 ```
 
 ## 故障排查
@@ -176,25 +182,21 @@ newgrp docker
 服务可能仍在初始化中，等待约 30 秒后手动检查：
 
 ```bash
-# 检查服务状态
-docker compose -f ~/.openclaw/docker-compose.yml ps
+# 检查 Gateway 状态
+openclaw gateway status
 
 # 查看详细日志（找 ERROR 行）
-docker compose -f ~/.openclaw/docker-compose.yml logs --tail=50
+openclaw gateway logs
 
 # 手动健康检查
 curl -v http://localhost:18789/healthz
 ```
 
-### 配置文件损坏或丢失
-
-重新生成配置（会备份现有 .env）：
+### 重新配置
 
 ```bash
-cd ~/.openclaw
-cp .env .env.backup.$(date +%Y%m%d%H%M%S)
-# 重新运行安装脚本会重新生成配置
-~/openclaw-easy-deploy/install.sh
+# 重新运行官方配置向导
+openclaw onboard --install-daemon
 ```
 
 ---
@@ -202,14 +204,14 @@ cp .env .env.backup.$(date +%Y%m%d%H%M%S)
 ## 卸载
 
 ```bash
-# 1. 停止并移除所有容器和网络
-docker compose -f ~/.openclaw/docker-compose.yml down --volumes
+# 1. 停止守护进程
+openclaw daemon stop
 
-# 2. 删除 OpenClaw 数据目录（⚠️ 不可恢复）
+# 2. 卸载 OpenClaw npm 包
+npm uninstall -g openclaw
+
+# 3. 删除 OpenClaw 数据目录（⚠️ 不可恢复，包含配置和日志）
 rm -rf ~/.openclaw
-
-# 3. 可选：移除 Docker 镜像
-docker rmi openclaw:local 2>/dev/null || true
 ```
 
 ---

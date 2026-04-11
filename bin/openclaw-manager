@@ -1,0 +1,532 @@
+#!/usr/bin/env bash
+#
+# openclaw-manager — OpenClaw 交互式管理工具
+#
+# 使用方法:
+#   bash <(curl -fsSL https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/main/bin/openclaw-manager)
+#   或下载后: chmod +x openclaw-manager && ./openclaw-manager
+#
+
+set -euo pipefail
+
+# ============================================================================
+# 初始化：加载公共函数库
+# ============================================================================
+
+MANAGER_VERSION="1.0.0"
+OPENCLAW_PORT="${OPENCLAW_PORT:-18789}"
+LOG_FILE="${HOME}/.openclaw/install.log"
+MANAGER_LOG="${HOME}/.openclaw/manager.log"
+
+# 尝试从本地 scripts/ 加载，否则从 GitHub 下载
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || echo ".")"
+COMMON_SH="$SCRIPT_DIR/../scripts/common.sh"
+
+if [[ -f "$COMMON_SH" ]]; then
+    # shellcheck source=/dev/null
+    . "$COMMON_SH"
+else
+    # 内联最小颜色定义（不依赖网络）
+    RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
+    BLUE='\033[0;34m'; CYAN='\033[0;36m'; NC='\033[0m'
+    log_info()    { echo -e "${BLUE}ℹ${NC} $*"; }
+    log_success() { echo -e "${GREEN}✅${NC} $*"; }
+    log_warning() { echo -e "${YELLOW}⚠${NC} $*"; }
+    log_error()   { echo -e "${RED}❌${NC} $*" >&2; }
+    command_exists() { command -v "$1" >/dev/null 2>&1; }
+    ask_yes_no() {
+        local prompt="$1" default="${2:-n}" answer
+        [[ "$default" == "y" ]] && prompt="$prompt (Y/n)" || prompt="$prompt (y/N)"
+        read -r -p "$prompt: " answer; answer="${answer:-$default}"
+        [[ "$answer" =~ ^[Yy] ]]
+    }
+    check_port() {
+        local port="$1"
+        command_exists lsof && lsof -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1 && return 0
+        command_exists netstat && netstat -an | grep -q ":$port .*LISTEN" && return 0
+        return 1
+    }
+fi
+
+mlog() { echo "[$(date +'%Y-%m-%d %H:%M:%S')] [manager] $*" >> "$MANAGER_LOG" 2>/dev/null || true; }
+
+# ============================================================================
+# 工具函数
+# ============================================================================
+
+require_openclaw() {
+    if ! command_exists openclaw; then
+        log_error "openclaw 命令未找到"
+        log_info  "请先运行安装脚本: curl -fsSL https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/main/install.sh | bash"
+        return 1
+    fi
+}
+
+press_enter() {
+    echo ""
+    read -r -p "  按 Enter 返回主菜单..." _
+}
+
+draw_header() {
+    clear
+    echo ""
+    echo -e "${CYAN}  ╔═══════════════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}  ║     🦞  OpenClaw Manager  v${MANAGER_VERSION}                    ║${NC}"
+    echo -e "${CYAN}  ╚═══════════════════════════════════════════════════════╝${NC}"
+    echo ""
+}
+
+draw_status_bar() {
+    # 显示简要状态（命令是否可用 + 端口是否监听）
+    local oc_ok port_ok
+    command_exists openclaw && oc_ok="${GREEN}可用${NC}" || oc_ok="${RED}未安装${NC}"
+    check_port "$OPENCLAW_PORT"  && port_ok="${GREEN}运行中${NC}" || port_ok="${YELLOW}未启动${NC}"
+
+    echo -e "  openclaw: $(echo -e "$oc_ok")   Gateway(:${OPENCLAW_PORT}): $(echo -e "$port_ok")"
+    echo ""
+}
+
+# ============================================================================
+# 各功能模块
+# ============================================================================
+
+# ── 1. 查看状态 ──────────────────────────────────────────────────────────────
+show_status() {
+    draw_header
+    echo -e "${CYAN}  【状态总览】${NC}"
+    echo ""
+
+    require_openclaw || { press_enter; return; }
+
+    echo -e "  ${BLUE}▶ openclaw 版本${NC}"
+    openclaw --version 2>/dev/null && echo "" || echo "  （获取版本失败）"
+
+    echo -e "  ${BLUE}▶ Gateway 状态${NC}"
+    openclaw gateway status 2>/dev/null || echo "  （无法获取 Gateway 状态）"
+    echo ""
+
+    echo -e "  ${BLUE}▶ 端口监听检测（:${OPENCLAW_PORT}）${NC}"
+    if check_port "$OPENCLAW_PORT"; then
+        echo -e "  ${GREEN}✅ 端口 ${OPENCLAW_PORT} 正在监听${NC}"
+    else
+        echo -e "  ${YELLOW}⚠ 端口 ${OPENCLAW_PORT} 未监听${NC}"
+    fi
+    echo ""
+
+    echo -e "  ${BLUE}▶ 健康检查${NC}"
+    if curl -fs --max-time 5 "http://localhost:${OPENCLAW_PORT}/healthz" >/dev/null 2>&1; then
+        echo -e "  ${GREEN}✅ http://localhost:${OPENCLAW_PORT}/healthz 正常${NC}"
+    else
+        echo -e "  ${YELLOW}⚠ 健康检查未通过（服务可能未启动）${NC}"
+    fi
+
+    mlog "查看状态"
+    press_enter
+}
+
+# ── 2. 查看日志 ──────────────────────────────────────────────────────────────
+show_logs() {
+    draw_header
+    echo -e "${CYAN}  【日志查看】${NC}"
+    echo ""
+    echo -e "  ${BLUE}1)${NC} 实时跟踪 Gateway 日志（Ctrl+C 退出）"
+    echo -e "  ${BLUE}2)${NC} 查看最近 50 行 Gateway 日志"
+    echo -e "  ${BLUE}3)${NC} 查看安装日志"
+    echo -e "  ${BLUE}4)${NC} 查看管理工具日志"
+    echo -e "  ${BLUE}0)${NC} 返回"
+    echo ""
+    read -r -p "  请选择 [0-4]: " sub
+
+    case "$sub" in
+        1)
+            require_openclaw || { press_enter; return; }
+            echo ""
+            log_info "正在跟踪日志（Ctrl+C 退出）..."
+            echo ""
+            openclaw gateway logs --follow 2>/dev/null || openclaw gateway logs 2>/dev/null || echo "无法获取日志"
+            ;;
+        2)
+            require_openclaw || { press_enter; return; }
+            echo ""
+            openclaw gateway logs 2>/dev/null | tail -50 || echo "无法获取日志"
+            press_enter
+            ;;
+        3)
+            echo ""
+            if [[ -f "$LOG_FILE" ]]; then
+                tail -80 "$LOG_FILE"
+            else
+                echo "  安装日志不存在: $LOG_FILE"
+            fi
+            press_enter
+            ;;
+        4)
+            echo ""
+            if [[ -f "$MANAGER_LOG" ]]; then
+                tail -50 "$MANAGER_LOG"
+            else
+                echo "  管理日志不存在: $MANAGER_LOG"
+            fi
+            press_enter
+            ;;
+        0) return ;;
+        *) log_warning "无效选项"; sleep 1 ;;
+    esac
+    mlog "查看日志 sub=$sub"
+}
+
+# ── 3. 服务管理 ──────────────────────────────────────────────────────────────
+manage_service() {
+    draw_header
+    echo -e "${CYAN}  【服务管理】${NC}"
+    echo ""
+    echo -e "  ${BLUE}1)${NC} 启动守护进程"
+    echo -e "  ${BLUE}2)${NC} 停止守护进程"
+    echo -e "  ${BLUE}3)${NC} 重启守护进程"
+    echo -e "  ${BLUE}0)${NC} 返回"
+    echo ""
+    read -r -p "  请选择 [0-3]: " sub
+
+    require_openclaw || { press_enter; return; }
+
+    case "$sub" in
+        1)
+            echo ""
+            log_info "正在启动守护进程..."
+            openclaw daemon start && log_success "守护进程已启动" || log_error "启动失败"
+            ;;
+        2)
+            echo ""
+            log_info "正在停止守护进程..."
+            openclaw daemon stop && log_success "守护进程已停止" || log_error "停止失败"
+            ;;
+        3)
+            echo ""
+            log_info "正在重启守护进程..."
+            openclaw daemon stop 2>/dev/null || true
+            sleep 2
+            openclaw daemon start && log_success "守护进程已重启" || log_error "重启失败"
+            ;;
+        0) return ;;
+        *) log_warning "无效选项"; sleep 1; return ;;
+    esac
+
+    mlog "服务管理 sub=$sub"
+    press_enter
+}
+
+# ── 4. 更新 OpenClaw ──────────────────────────────────────────────────────────
+update_openclaw() {
+    draw_header
+    echo -e "${CYAN}  【更新 OpenClaw】${NC}"
+    echo ""
+
+    require_openclaw || { press_enter; return; }
+
+    local current_ver
+    current_ver=$(openclaw --version 2>/dev/null || echo "未知")
+    log_info "当前版本: $current_ver"
+    echo ""
+
+    if ! ask_yes_no "  确认更新到最新版?" "y"; then
+        return
+    fi
+
+    echo ""
+    log_info "正在更新..."
+    if npm update -g openclaw 2>&1; then
+        local new_ver
+        new_ver=$(openclaw --version 2>/dev/null || echo "未知")
+        log_success "更新完成！新版本: $new_ver"
+        if [[ "$current_ver" == "$new_ver" ]]; then
+            log_info "（已是最新版本）"
+        fi
+    else
+        log_error "更新失败，请尝试: sudo npm update -g openclaw"
+    fi
+
+    mlog "更新 openclaw: $current_ver → $(openclaw --version 2>/dev/null || echo '未知')"
+    press_enter
+}
+
+# ── 5. 渠道管理 ──────────────────────────────────────────────────────────────
+manage_channels() {
+    draw_header
+    echo -e "${CYAN}  【渠道管理】${NC}"
+    echo ""
+
+    require_openclaw || { press_enter; return; }
+
+    echo -e "  ${BLUE}1)${NC} 查看已连接渠道"
+    echo -e "  ${BLUE}2)${NC} 添加 Telegram Bot"
+    echo -e "  ${BLUE}3)${NC} 添加 Discord Bot"
+    echo -e "  ${BLUE}4)${NC} 扫码登录 WhatsApp"
+    echo -e "  ${BLUE}5)${NC} 移除渠道"
+    echo -e "  ${BLUE}0)${NC} 返回"
+    echo ""
+    read -r -p "  请选择 [0-5]: " sub
+
+    case "$sub" in
+        1)
+            echo ""
+            openclaw channels list 2>/dev/null || echo "  无法获取渠道列表"
+            press_enter
+            ;;
+        2)
+            echo ""
+            read -r -p "  请输入 Telegram Bot Token: " token
+            if [[ -n "$token" ]]; then
+                openclaw channels add --channel telegram --token "$token" \
+                    && log_success "Telegram 渠道添加成功" \
+                    || log_error "添加失败"
+            else
+                log_warning "Token 不能为空"
+            fi
+            press_enter
+            ;;
+        3)
+            echo ""
+            read -r -p "  请输入 Discord Bot Token: " token
+            if [[ -n "$token" ]]; then
+                openclaw channels add --channel discord --token "$token" \
+                    && log_success "Discord 渠道添加成功" \
+                    || log_error "添加失败"
+            else
+                log_warning "Token 不能为空"
+            fi
+            press_enter
+            ;;
+        4)
+            echo ""
+            log_info "正在启动 WhatsApp 扫码登录..."
+            openclaw channels login --channel whatsapp \
+                && log_success "WhatsApp 登录成功" \
+                || log_error "登录失败"
+            press_enter
+            ;;
+        5)
+            echo ""
+            echo -e "  ${YELLOW}当前已连接渠道：${NC}"
+            openclaw channels list 2>/dev/null || echo "  （无法获取）"
+            echo ""
+            read -r -p "  请输入要移除的渠道名称 (telegram/discord/whatsapp): " ch
+            if [[ -n "$ch" ]]; then
+                if ask_yes_no "  确认移除渠道 '$ch'?" "n"; then
+                    openclaw channels remove --channel "$ch" \
+                        && log_success "渠道 '$ch' 已移除" \
+                        || log_error "移除失败"
+                fi
+            fi
+            press_enter
+            ;;
+        0) return ;;
+        *) log_warning "无效选项"; sleep 1 ;;
+    esac
+    mlog "渠道管理 sub=$sub"
+}
+
+# ── 6. 重新配置（onboard）────────────────────────────────────────────────────
+rerun_onboard() {
+    draw_header
+    echo -e "${CYAN}  【重新运行配置向导】${NC}"
+    echo ""
+    log_warning "这将重新运行 openclaw onboard --install-daemon"
+    log_info    "可用于更换 AI 模型、更新 API Key 或修复配置"
+    echo ""
+
+    require_openclaw || { press_enter; return; }
+
+    if ask_yes_no "  确认重新运行配置向导?" "y"; then
+        echo ""
+        openclaw onboard --install-daemon \
+            && log_success "配置向导完成" \
+            || log_warning "向导退出（可能是正常退出）"
+        mlog "重新 onboard"
+        press_enter
+    fi
+}
+
+# ── 7. 诊断工具 ──────────────────────────────────────────────────────────────
+run_diagnostics() {
+    draw_header
+    echo -e "${CYAN}  【诊断工具】${NC}"
+    echo ""
+
+    # Node.js
+    echo -e "  ${BLUE}▶ Node.js${NC}"
+    if command_exists node; then
+        echo -e "     版本: $(node --version)"
+    else
+        echo -e "     ${RED}❌ 未安装${NC}"
+    fi
+
+    # npm
+    echo -e "  ${BLUE}▶ npm${NC}"
+    if command_exists npm; then
+        echo -e "     版本: $(npm --version)"
+        echo -e "     全局路径: $(npm bin -g 2>/dev/null || echo '未知')"
+    else
+        echo -e "     ${RED}❌ 未安装${NC}"
+    fi
+
+    # openclaw
+    echo -e "  ${BLUE}▶ openclaw${NC}"
+    if command_exists openclaw; then
+        echo -e "     版本: $(openclaw --version 2>/dev/null || echo '未知')"
+        echo -e "     路径: $(command -v openclaw)"
+    else
+        echo -e "     ${RED}❌ 未安装${NC}"
+    fi
+
+    # Gateway 端口
+    echo -e "  ${BLUE}▶ Gateway 端口 :${OPENCLAW_PORT}${NC}"
+    if check_port "$OPENCLAW_PORT"; then
+        echo -e "     ${GREEN}✅ 正在监听${NC}"
+    else
+        echo -e "     ${YELLOW}⚠ 未监听${NC}"
+    fi
+
+    # HTTP 健康检查
+    echo -e "  ${BLUE}▶ 健康检查 /healthz${NC}"
+    local http_resp
+    http_resp=$(curl -fs --max-time 5 -w "%{http_code}" \
+        "http://localhost:${OPENCLAW_PORT}/healthz" -o /dev/null 2>/dev/null || echo "000")
+    if [[ "$http_resp" == "200" ]]; then
+        echo -e "     ${GREEN}✅ HTTP 200 OK${NC}"
+    else
+        echo -e "     ${YELLOW}⚠ HTTP $http_resp${NC}"
+    fi
+
+    # 网络连通性
+    echo -e "  ${BLUE}▶ 网络连通性（GitHub）${NC}"
+    if curl -fs --max-time 5 https://github.com >/dev/null 2>&1; then
+        echo -e "     ${GREEN}✅ 正常${NC}"
+    else
+        echo -e "     ${RED}❌ 无法访问 GitHub${NC}"
+    fi
+
+    # npm 连通性
+    echo -e "  ${BLUE}▶ npm Registry 连通性${NC}"
+    if curl -fs --max-time 5 https://registry.npmjs.org >/dev/null 2>&1; then
+        echo -e "     ${GREEN}✅ 正常${NC}"
+    else
+        echo -e "     ${RED}❌ 无法访问 npm Registry${NC}"
+    fi
+
+    # 日志文件
+    echo -e "  ${BLUE}▶ 日志文件${NC}"
+    echo -e "     安装日志: ${LOG_FILE}"
+    [[ -f "$LOG_FILE" ]] \
+        && echo -e "     ${GREEN}✅ 存在（$(wc -l < "$LOG_FILE") 行）${NC}" \
+        || echo -e "     ${YELLOW}⚠ 不存在${NC}"
+
+    echo ""
+    mlog "运行诊断"
+    press_enter
+}
+
+# ── 8. 卸载 OpenClaw ──────────────────────────────────────────────────────────
+uninstall_openclaw() {
+    draw_header
+    echo -e "${RED}  【卸载 OpenClaw】${NC}"
+    echo ""
+    echo -e "  ${YELLOW}⚠ 警告：此操作将：${NC}"
+    echo -e "     1. 停止并卸载守护进程"
+    echo -e "     2. 卸载 openclaw npm 包"
+    echo -e "     3. （可选）删除 ~/.openclaw 数据目录"
+    echo ""
+
+    if ! ask_yes_no "  确认卸载 OpenClaw?" "n"; then
+        log_info "已取消卸载"
+        press_enter
+        return
+    fi
+
+    echo ""
+
+    # 停止守护进程
+    if command_exists openclaw; then
+        log_info "正在停止守护进程..."
+        openclaw daemon stop 2>/dev/null && log_success "守护进程已停止" || log_warning "停止守护进程失败（可能未运行）"
+
+        # 卸载 npm 包
+        log_info "正在卸载 openclaw..."
+        if npm uninstall -g openclaw 2>&1; then
+            log_success "openclaw npm 包已卸载"
+        else
+            log_warning "npm 卸载失败，尝试 sudo..."
+            sudo npm uninstall -g openclaw 2>&1 && log_success "卸载成功" || log_error "卸载失败"
+        fi
+    else
+        log_warning "openclaw 命令不存在，跳过 npm 卸载"
+    fi
+
+    # 询问是否删除数据目录
+    echo ""
+    if ask_yes_no "  是否同时删除 ~/.openclaw 数据目录？（包含配置和日志，不可恢复）" "n"; then
+        rm -rf "${HOME}/.openclaw"
+        log_success "数据目录已删除"
+    else
+        log_info "数据目录已保留: ~/.openclaw"
+    fi
+
+    echo ""
+    log_success "卸载完成"
+    mlog "卸载 OpenClaw"
+    press_enter
+}
+
+# ============================================================================
+# 主菜单
+# ============================================================================
+
+main_menu() {
+    while true; do
+        draw_header
+        draw_status_bar
+
+        echo -e "  ${CYAN}请选择操作：${NC}"
+        echo ""
+        echo -e "  ${BLUE}1)${NC} 📊 查看状态"
+        echo -e "  ${BLUE}2)${NC} 📋 查看日志"
+        echo -e "  ${BLUE}3)${NC} ⚙️  服务管理（启动/停止/重启）"
+        echo -e "  ${BLUE}4)${NC} 🔄 更新 OpenClaw"
+        echo -e "  ${BLUE}5)${NC} 💬 渠道管理（Telegram/Discord/WhatsApp）"
+        echo -e "  ${BLUE}6)${NC} 🔧 重新运行配置向导（onboard）"
+        echo -e "  ${BLUE}7)${NC} 🔍 诊断工具"
+        echo -e "  ${BLUE}8)${NC} 🗑️  卸载 OpenClaw"
+        echo -e "  ${BLUE}0)${NC} 👋 退出"
+        echo ""
+        read -r -p "  请输入选项 [0-8]: " choice
+
+        case "$choice" in
+            1) show_status ;;
+            2) show_logs ;;
+            3) manage_service ;;
+            4) update_openclaw ;;
+            5) manage_channels ;;
+            6) rerun_onboard ;;
+            7) run_diagnostics ;;
+            8) uninstall_openclaw ;;
+            0)
+                echo ""
+                log_info "再见！"
+                echo ""
+                exit 0
+                ;;
+            *)
+                log_warning "无效选项：$choice"
+                sleep 1
+                ;;
+        esac
+    done
+}
+
+# ============================================================================
+# 入口
+# ============================================================================
+
+mkdir -p "${HOME}/.openclaw" 2>/dev/null || true
+mlog "管理工具启动 v${MANAGER_VERSION}"
+main_menu
+
