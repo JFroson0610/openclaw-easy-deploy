@@ -1,0 +1,48 @@
+{
+  "name": "openclaw-companion",
+  "version": "2.0.0-beta.1",
+  "description": "Bilingual, China-friendly operations companion for OpenClaw",
+  "type": "module",
+  "bin": {
+    "openclaw-companion": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsc -p tsconfig.json && node --test test/*.test.js",
+    "test:coverage": "tsc -p tsconfig.json && node --test --experimental-test-coverage test/*.test.js",
+    "check": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.json && node --test test/*.test.js",
+    "prepack": "pnpm check"
+  },
+  "keywords": [
+    "openclaw",
+    "self-hosted",
+    "chinese",
+    "cli",
+    "diagnostics",
+    "backup"
+  ],
+  "author": "JFroson0610",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JFroson0610/openclaw-easy-deploy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JFroson0610/openclaw-easy-deploy/issues"
+  },
+  "homepage": "https://github.com/JFroson0610/openclaw-easy-deploy#readme",
+  "engines": {
+    "node": ">=22.22.3 <23 || >=24.15.0 <25 || >=25.9.0 <27"
+  },
+  "packageManager": "pnpm@11.19.0",
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}

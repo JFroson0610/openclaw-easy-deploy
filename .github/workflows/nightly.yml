@@ -1,0 +1,34 @@
+name: OpenClaw nightly compatibility
+
+on:
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: npm install --global openclaw@latest
+      - run: openclaw --version
+      - run: node test/nightly-smoke.js
+        env:
+          OPENCLAW_CONFIG_PATH: ${{ runner.temp }}/openclaw-companion/openclaw.json
+          OPENCLAW_STATE_DIR: ${{ runner.temp }}/openclaw-companion/state

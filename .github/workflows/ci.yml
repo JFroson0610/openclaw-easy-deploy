@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  push:
+    branches: [main, feat/v2-companion]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-24.04-arm, macos-15-intel, macos-14, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+
+  debian:
+    name: Test (Debian 12 x64)
+    runs-on: ubuntu-latest
+    container: node:24-bookworm-slim
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install --global pnpm@11.19.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --audit-level high
+
+  node-lines:
+    name: Node ${{ matrix.node }}
+    strategy:
+      matrix:
+        node: [22.22.3, 24.15.0, 26]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+
+  node-rejected:
+    name: Reject Node 23
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 23
+      - run: pnpm install --frozen-lockfile --config.engine-strict=false
+      - run: pnpm build
+      - name: Verify the CLI rejects Node 23
+        shell: bash
+        run: |
+          set +e
+          node dist/cli.js check --json > result.json
+          status=$?
+          set -e
+          test "$status" -eq 2
+          node -e "const r=require('./result.json'); if (!r.reason?.includes('Node.js 23')) process.exit(1)"
+
+  scripts:
+    name: Bootstrap scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash -n install.sh bin/openclaw-manager
+      - run: shellcheck install.sh bin/openclaw-manager
+
+  powershell:
+    name: PowerShell ${{ matrix.shell }} bootstrap
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        shell: [powershell, pwsh]
+    steps:
+      - uses: actions/checkout@v4
+      - shell: ${{ matrix.shell }}
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
+          $results = @(Invoke-ScriptAnalyzer ./install.ps1 -Severity Error)
+          $results | Format-Table
+          if ($results.Count -gt 0) { exit 1 }

@@ -1,0 +1,27 @@
+name: Compatibility report
+description: Report an OpenClaw, Node.js, provider, channel, or OS compatibility issue
+title: "[Compatibility]: "
+labels: [compatibility]
+body:
+  - type: markdown
+    attributes:
+      value: "Run `openclaw-companion check --json` and redact local paths before sharing. Never post credentials."
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: OpenClaw Companion, OpenClaw, and Node.js versions
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform and architecture
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Sanitized check result
+    validations:
+      required: true

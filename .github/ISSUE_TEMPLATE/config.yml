@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: OpenClaw official documentation
+    url: https://docs.openclaw.ai
+    about: Use official documentation for OpenClaw product questions.
+  - name: Private security report
+    url: https://github.com/JFroson0610/openclaw-easy-deploy/security/advisories/new
+    about: Report vulnerabilities privately. Revoke exposed credentials first.
