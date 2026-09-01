@@ -103,17 +103,21 @@ jobs:
       - run: shellcheck install.sh bin/openclaw-manager
 
   powershell:
-    name: PowerShell ${{ matrix.shell }} bootstrap
+    name: PowerShell bootstrap
     runs-on: windows-latest
-    strategy:
-      matrix:
-        shell: [powershell, pwsh]
     steps:
       - uses: actions/checkout@v4
-      - shell: ${{ matrix.shell }}
+      - name: Analyze with Windows PowerShell 5.1
+        shell: powershell
         run: |
           Set-PSRepository PSGallery -InstallationPolicy Trusted
           Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
+          $results = @(Invoke-ScriptAnalyzer ./install.ps1 -Severity Error)
+          $results | Format-Table
+          if ($results.Count -gt 0) { exit 1 }
+      - name: Analyze with PowerShell 7
+        shell: pwsh
+        run: |
           $results = @(Invoke-ScriptAnalyzer ./install.ps1 -Severity Error)
           $results | Format-Table
           if ($results.Count -gt 0) { exit 1 }
