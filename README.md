@@ -1,371 +1,393 @@
-# 🦞 OpenClaw Easy Deploy | OpenClaw 一键部署工具
+# OpenClaw Companion | OpenClaw 中文助手
 
-<div align="center">
+> 面向普通用户的中英双语 OpenClaw 运维助手：安全编排官方安装、配置、检查、升级、备份、修复与诊断流程。
+>
+> A bilingual operations companion that safely orchestrates official OpenClaw setup, checks, upgrades, backups, repairs, and diagnostics.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)](https://github.com/JFroson0610/openclaw-easy-deploy)
-[![OpenClaw](https://img.shields.io/badge/OpenClaw-Compatible-green)](https://openclaw.ai)
+[![CI](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/ci.yml)
+[![npm beta](https://img.shields.io/npm/v/openclaw-companion/next?label=npm%20beta)](https://www.npmjs.com/package/openclaw-companion)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Status: v2 beta](https://img.shields.io/badge/status-v2%20beta-blue.svg)](https://github.com/JFroson0610/openclaw-easy-deploy/releases/tag/v2.0.0-beta.1)
+[![Telemetry: none](https://img.shields.io/badge/telemetry-none-success.svg)](SECURITY.md)
 
-**让 OpenClaw 部署变得简单 - 零技术门槛，一键安装**
+[中文](#中文) · [English](#english)
 
-[English](#english) | [中文](#中文简介)
+> [!IMPORTANT]
+> **v2 发布状态：** `2.0.0-beta.1` 已发布到 npm，推荐明确使用 `openclaw-companion@next` 安装。正式版仍需完成至少 14 天 Beta 观察，并解决所有 P0/P1 安全或安装问题。
+>
+> **v2 release status:** `2.0.0-beta.1` is available from npm. Install the explicit `openclaw-companion@next` tag. The stable release still requires at least 14 days of Beta observation and no unresolved P0/P1 security or installation issue.
 
-</div>
-
----
-
-<a name="english"></a>
-
-## 🌟 English
-
-### 📖 What is OpenClaw Easy Deploy?
-
-OpenClaw Easy Deploy is a community-contributed one-click installer designed to eliminate the pain points of deploying [OpenClaw](https://openclaw.ai). Even users with zero technical knowledge can get OpenClaw up and running.
-
-**OpenClaw** is a powerful personal AI assistant that can:
-- 🤖 Connect to multiple AI models (Claude, GPT, Gemini, etc.)
-- 💬 Support multiple chat platforms (WhatsApp, Telegram, Discord, Slack, etc.)
-- 🌐 Browser control, file operations, and skill extensions
-- 🔒 Fully private deployment — your data stays yours
-
-### ✨ Why This Tool?
-
-Official OpenClaw deployment requires:
-- ❌ Manually installing Node.js 22+
-- ❌ Reading the official docs to figure out the right install path
-- ❌ Understanding npm global installs and PATH configuration
-- ❌ Dealing with platform-specific permission issues
-
-**With this tool:**
-- ✅ One command installs everything
-- ✅ Auto-detects and installs Node.js 22+ if missing
-- ✅ Installs `openclaw` globally via npm
-- ✅ Hands off to the official `openclaw onboard` wizard (so config is always up-to-date)
-- ✅ Full Chinese & English support
-
-### 🚀 Quick Start
-
-#### macOS / Linux
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/main/install.sh | bash
-```
-
-Or download and run:
-
-```bash
-wget https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/main/install.sh
-chmod +x install.sh
-./install.sh
-```
-
-#### Windows
-
-```powershell
-# Run PowerShell as Administrator
-irm https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/main/install.ps1 | iex
-```
-
-### ⚙️ What the Script Does
-
-1. **Detects your OS and architecture**
-2. **Installs Node.js 22+** (via Homebrew on macOS, nvm on Linux) — skipped if already installed
-3. **Installs OpenClaw** via `npm install -g openclaw@latest`
-4. **Runs `openclaw onboard --install-daemon`** — the official interactive wizard that:
-   - Configures your AI model (Claude, OpenAI, Gemini, etc.)
-   - Generates a secure Gateway token
-   - Installs the background daemon (auto-start on login)
-   - Starts the Gateway
-5. **Verifies** the installation and prints useful commands
-
-### 📋 System Requirements
-
-- **OS**: macOS 10.15+, Ubuntu 20.04+, Debian 10+, CentOS 8+, Windows 10+
-- **Architecture**: x86_64 or arm64 (Apple Silicon)
-- **Disk Space**: At least 500 MB free
-- **RAM**: 1 GB or more recommended
-- **Node.js**: 22+ (auto-installed if missing)
-
-### 📚 Documentation
-
-- [Installation Guide](docs/installation.md)
-- [Configuration Guide](docs/configuration.md)
-- [Troubleshooting](docs/troubleshooting.md)
-- [API Key Setup](docs/api-keys.md)
-- [FAQ](docs/faq.md)
-
-### 🤝 Contributing
-
-Contributions are welcome! Please open an [Issue](https://github.com/JFroson0610/openclaw-easy-deploy/issues) or submit a [Pull Request](https://github.com/JFroson0610/openclaw-easy-deploy/pulls).
-
-### 📄 License
-
-MIT License — see [LICENSE](LICENSE)
-
-### 🙏 Credits
-
-Built on top of [OpenClaw](https://github.com/openclaw/openclaw). Thanks to the OpenClaw team for their amazing work!
-
-> **Note**: This is a community-contributed installer, not an official OpenClaw project.
-
----
-
-<a name="中文简介"></a>
+> [!WARNING]
+> 这是社区项目，并非 OpenClaw 官方产品。OpenClaw 名称、商标和上游代码归其各自权利人所有。
+>
+> This is a community project, not an official OpenClaw product. The OpenClaw name, trademarks, and upstream code belong to their respective owners.
 
 ## 中文
 
-### 📖 项目简介
+### 它解决什么问题
 
-OpenClaw Easy Deploy 是一个社区贡献的一键部署工具，旨在解决 [OpenClaw](https://openclaw.ai) 部署过程中的各种痛点，让完全不懂技术的用户也能轻松安装和使用 OpenClaw。
+OpenClaw 已经提供安装器、配置向导、Doctor、更新、备份和诊断工具。OpenClaw Companion 不重复实现这些能力，而是把官方命令组合成更容易理解、更不容易误操作的流程。
 
-**OpenClaw** 是一个强大的个人 AI 助手，可以：
-- 🤖 连接多种 AI 模型（Claude、GPT、Gemini 等）
-- 💬 支持多个聊天平台（WhatsApp、Telegram、Discord、Slack 等）
-- 🌐 浏览器控制、文件操作、技能扩展
-- 🔒 完全私有部署，数据安全
+```text
+你
+└─ OpenClaw Companion：中文说明、影响预览、确认、结果归一化
+   └─ OpenClaw 官方 CLI：安装、认证、配置、更新、备份、修复、诊断
+      └─ 你的本地 OpenClaw 数据
+```
 
-### ✨ 为什么需要这个工具？
+适合 Windows、macOS、Ubuntu 和 Debian 上的零基础或轻度技术用户。它不是 Web 面板、桌面 GUI、OpenClaw Fork，也不会运行自己的后台服务。
 
-官方 OpenClaw 部署需要：
-- ❌ 手动安装 Node.js 22+
-- ❌ 查阅官方文档弄清楚正确的安装路线
-- ❌ 处理 npm 全局安装和 PATH 配置问题
-- ❌ 应对各平台特有的权限问题
+### 核心能力
 
-**使用本工具后：**
-- ✅ 一条命令完成所有安装
-- ✅ 自动检测并安装 Node.js 22+
-- ✅ 自动通过 npm 全局安装 openclaw
-- ✅ 直接调用官方 `openclaw onboard` 向导（确保配置始终与官方一致）
-- ✅ 中英双语支持
+| 能力 | Companion 做什么 | 安全边界 |
+|---|---|---|
+| 设置 | 检查环境，突出 Qwen、Kimi、DeepSeek、MiniMax 和飞书，启动官方向导 | 不接收或保存密钥 |
+| 检查 | 汇总 OpenClaw 版本、更新、Gateway、Doctor 和可选渠道探测 | 只读 |
+| 升级 | 更新预览 → 验证备份 → 用户确认 → 官方更新 → 升级后检查 | 备份失败立即停止 |
+| 备份 | 调用官方 `backup create --verify` | 不自行复制运行中的 SQLite |
+| 修复 | 先运行只读 Doctor，展示影响并备份，再确认修复和重启 | 不静默修改配置 |
+| 支持 | 调用官方脱敏诊断导出并显示本地路径 | 不自动上传 |
 
-### 🚀 快速开始
+所有自有提示均提供简体中文和英文。语言优先级为：`--lang` → `OPENCLAW_COMPANION_LANG` → 系统语言 → English。
 
-#### macOS / Linux
+### 安装
+
+前置条件：
+
+- Windows 10/11、macOS 13+、Ubuntu 22.04/24.04 或 Debian 12。
+- Node.js 22.22.3+、24.15+、25.9+ 或 26；明确不支持 Node 23。
+- OpenClaw 2026.5.29 或更高版本；若缺失，兼容启动器会在确认后调用官方安装器。
+
+当前 Beta：
 
 ```bash
+npm install -g openclaw-companion@next
+openclaw-companion setup --lang zh-CN
+```
+
+npm 会为全新包的首次发布自动建立 `latest` 标签，因此不带标签目前也会得到这个 Beta。为清楚表达用途并方便未来切换，测试用户请始终显式使用 `@next`。正式版完成观察期后才会正式推广无标签安装：
+
+```bash
+npm install -g openclaw-companion
+openclaw-companion setup --lang zh-CN
+```
+
+旧版一键链接保持有效，并会通过主分支安装新版 Companion：
+
+```bash
+# macOS / Linux
 curl -fsSL https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/main/install.sh | bash
 ```
 
-或者下载后执行：
-
-```bash
-wget https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/main/install.sh
-chmod +x install.sh
-./install.sh
-```
-
-#### Windows
-
 ```powershell
-# 以管理员身份运行 PowerShell
+# Windows PowerShell
 irm https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/main/install.ps1 | iex
 ```
 
-### ⚙️ 脚本做了什么
+远程脚本会先请求确认；建议先下载并检查内容再执行。它默认使用 npm 官方源，只有官方源失败且用户明确同意时，才为当前安装进程临时使用 `registry.npmmirror.com`，不会运行 `npm config set`。
 
-1. **检测操作系统和 CPU 架构**
-2. **安装 Node.js 22+**（macOS 用 Homebrew，Linux 用 nvm）—— 已安装则跳过
-3. **安装 OpenClaw**：`npm install -g openclaw@latest`
-4. **运行 `openclaw onboard --install-daemon`**（官方交互式向导）：
-   - 配置 AI 模型（Claude、OpenAI、Gemini 等）
-   - 生成安全的 Gateway Token
-   - 安装后台守护进程（登录自启）
-   - 启动 Gateway
-5. **验证安装** 并打印常用命令
-
-### 📋 系统要求
-
-- **操作系统**: macOS 10.15+, Ubuntu 20.04+, Debian 10+, CentOS 8+, Windows 10+
-- **CPU 架构**: x86_64 或 arm64 (Apple Silicon)
-- **磁盘空间**: 至少 500MB 可用空间
-- **内存**: 建议 1GB 以上
-- **Node.js**: 22+（缺失会自动安装）
-
-### 🎯 功能特性
-
-#### 🔍 智能环境检测
-- 自动检测操作系统和架构
-- 检测已安装的 Node.js 版本
-- 检查磁盘空间和端口占用
-
-#### 📦 自动依赖安装
-- **Node.js 22+**: 通过 Homebrew（macOS）或 nvm（Linux）自动安装
-- **npm 全局路径**: 自动修复 PATH 配置，确保 `openclaw` 命令可用
-
-#### ⚙️ 官方配置向导
-- 直接调用 `openclaw onboard --install-daemon` 官方向导
-- 向导会引导配置 AI 模型（Claude、OpenAI、Gemini 等）
-- 自动安装后台守护进程（开机自启）
-- 启动 Gateway 服务
-
-#### 🛡️ 错误处理和诊断
-- 友好的错误提示和解决方案
-- 详细的安装日志（`~/.openclaw/install.log`）
-- 内置诊断工具（openclaw-manager）
-
-#### ♻️ 幂等性设计
-- 可以安全地重复运行脚本
-- 自动跳过已完成的步骤
-
-#### 🌍 多语言支持
-- 完整的中英双语文档
-- 中文友好的错误提示
-
-### 📸 安装演示
-
-```
-╔═══════════════════════════════════════════════════════════════╗
-║                                                               ║
-║       🦞  OpenClaw Easy Deploy  🦞                            ║
-║                                                               ║
-║       让 OpenClaw 部署变得简单 - 零技术门槛，一键安装           ║
-║                                                               ║
-╚═══════════════════════════════════════════════════════════════╝
-
-⚠️  安装前请准备：AI 平台的 API Key（如 OpenAI / Claude / Gemini）
-📖 获取指南: https://github.com/JFroson0610/openclaw-easy-deploy/blob/main/docs/api-keys-zh.md
-
-ℹ 操作系统: macOS 14.2
-ℹ CPU 架构: Apple Silicon (M1/M2/M3)
-✅ Node.js 版本满足要求 (≥22)
-✅ 可用磁盘空间: 50GB
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-安装 OpenClaw（npm install -g）
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-ℹ 正在通过 npm 全局安装最新版 OpenClaw...
-✅ OpenClaw 1.2.3 安装成功
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-运行 OpenClaw 配置向导（onboard）
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  接下来将运行 OpenClaw 官方交互式配置向导
-
-  向导会引导你完成：
-  • 配置 AI 模型（Claude / OpenAI / Gemini 等）
-  • 生成 Gateway Token
-  • 安装守护进程（开机自启）
-  • 启动 Gateway 服务
-
-准备好了，开始向导? (Y/n): y
-
-[OpenClaw 官方向导运行中...]
-
-✅ onboard 配置向导完成！
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-验证安装
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-✅ openclaw 命令就绪（1.2.3）
-✅ Gateway 端口 18789 已监听
-✅ Gateway 健康检查通过！
-
-╔═══════════════════════════════════════════════════════════════╗
-║                                                               ║
-║                   🎉  安装成功！ 🎉                           ║
-║                                                               ║
-╚═══════════════════════════════════════════════════════════════╝
-
-📍 访问 Gateway 控制台: http://localhost:18789
-```
-
-### 📚 详细文档
-
-- [安装指南](docs/installation-zh.md) - 详细的安装步骤和说明
-- [配置指南](docs/configuration-zh.md) - 配置文件详解
-- [故障排查](docs/troubleshooting-zh.md) - 常见问题和解决方案
-- [API 密钥获取](docs/api-keys-zh.md) - 如何获取各种 API Key
-- [常见问题 FAQ](docs/faq-zh.md) - 常见问题解答
-
-### 📁 项目结构
-
-```
-openclaw-easy-deploy/
-├── install.sh              # macOS/Linux 一键安装脚本
-├── install.ps1             # Windows PowerShell 安装脚本
-├── bin/
-│   └── openclaw-manager    # 交互式管理工具（8大功能）
-├── scripts/                # Bash 模块化子脚本
-│   ├── common.sh           # 公共函数库
-│   ├── detect-env.sh       # 环境检测
-│   ├── install-node.sh     # Node.js 安装
-│   ├── configure.sh        # OpenClaw 安装与配置
-│   └── verify.sh           # 验证与成功提示
-├── docs/                   # 完整文档（中英双语）
-│   ├── installation*.md    # 安装指南
-│   ├── configuration*.md   # 配置指南
-│   ├── troubleshooting*.md # 故障排查
-│   ├── api-keys*.md        # API Key 获取
-│   └── faq*.md             # 常见问题
-└── .github/
-    └── workflows/          # CI/CD 自动化
-```
-
-### 🔧 安装后管理
-
-安装完成后，使用 `openclaw` CLI 管理 OpenClaw：
+从源码运行：
 
 ```bash
-# 查看 Gateway 状态
-openclaw gateway status
-
-# 查看 Gateway 日志
-openclaw gateway logs
-
-# 停止守护进程
-openclaw daemon stop
-
-# 启动守护进程
-openclaw daemon start
-
-# 更新到最新版
-npm update -g openclaw
-
-# 重新运行配置向导
-openclaw onboard
+git clone https://github.com/JFroson0610/openclaw-easy-deploy.git
+cd openclaw-easy-deploy
+pnpm install --frozen-lockfile
+pnpm build
+node dist/cli.js check --json
 ```
 
-### 🔑 配置聊天平台
+完整步骤见[中文安装指南](docs/installation-zh.md)。
 
-#### WhatsApp（扫码登录）
+### 命令
+
+不带参数运行 `openclaw-companion` 与运行 `openclaw-companion menu` 相同。
+
+| 命令 | 行为 | 是否修改状态 |
+|---|---|---|
+| `menu` | 打开双语交互菜单 | 取决于所选操作 |
+| `setup` | 检查环境并启动官方模型/飞书向导 | 是，官方向导负责 |
+| `check` | 汇总版本、更新、Gateway、模型/渠道状态和 Doctor | 否 |
+| `upgrade` | 预览、备份、更新并执行升级后检查 | 是，确认后 |
+| `backup` | 创建并验证官方备份 | 是，仅写备份文件 |
+| `repair` | 检查、展示影响、备份并逐项确认修复 | 是，确认后 |
+| `support` | 在本地生成官方脱敏诊断包 | 是，仅写本地文件 |
+
+常用示例：
 
 ```bash
-openclaw channels login --channel whatsapp
+openclaw-companion check
+openclaw-companion check --deep
+openclaw-companion check --json
+openclaw-companion check --json --strict
+openclaw-companion upgrade --dry-run
+openclaw-companion upgrade --channel beta
+openclaw-companion backup --output ./backups
+openclaw-companion repair --dry-run
+openclaw-companion support --output ./support
 ```
 
-#### Telegram（Bot Token）
+全局参数：
+
+| 参数 | 说明 |
+|---|---|
+| `--lang auto\|zh-CN\|en` | 选择界面语言 |
+| `--json` | 输出机器可读结果；交互式 `setup` 仅支持 `--dry-run --json` 预览 |
+| `--verbose` | 显示经过脱敏的官方命令原始输出 |
+| `--yes` | 仅跳过明确的交互确认，不能跳过升级前备份 |
+| `--dry-run` | 预览安装、升级、修复或备份动作 |
+| `--strict` | `check` 出现 warning 时也返回非零退出码 |
+| `--deep` | `check` 额外执行渠道网络探测 |
+| `--output <路径>` | 指定备份或诊断包位置 |
+| `--channel stable\|beta` | 指定官方 OpenClaw 更新通道 |
+
+### `check --json`
+
+稳定输出结构：
+
+```json
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-01T00:00:00.000Z",
+  "locale": "zh-CN",
+  "openclawVersion": "2026.8.1",
+  "overall": "warning",
+  "checks": [
+    {
+      "id": "openclaw/update",
+      "status": "warning",
+      "summary": "检测到 OpenClaw 有可用更新。",
+      "sourceCommand": "openclaw update status --json",
+      "fixHint": "请先运行官方安装器或升级到当前稳定版。"
+    }
+  ]
+}
+```
+
+退出码：
+
+- `0`：命令完成，检查没有 error；`--strict` 下也没有 warning。
+- `1`：检查完成，但发现 error；`--strict` 下 warning 也返回 `1`。
+- `2`：参数、运行环境或官方命令无法启动，CLI 无法正常执行。
+
+解析采用向前兼容策略：忽略官方 JSON 新增字段；遇到缺失字段或非 JSON 输出时降级为 warning，而不是崩溃。Gateway 不可达、Doctor error、严重安全发现和更新可用状态会被单独识别。
+
+### 中国区模型与飞书
+
+`setup` 首页突出当前有官方接入路径的 Qwen、Moonshot/Kimi、DeepSeek、MiniMax 和飞书，认证仍由 `openclaw onboard`、`openclaw configure` 或 `openclaw channels login` 完成。
+
+- [Qwen 官方接入](https://docs.openclaw.ai/providers/qwen)
+- [Moonshot/Kimi 官方接入](https://docs.openclaw.ai/concepts/model-providers)
+- [DeepSeek 官方接入](https://docs.openclaw.ai/providers/deepseek)
+- [MiniMax 官方接入](https://docs.openclaw.ai/providers/minimax)
+- [飞书官方接入](https://docs.openclaw.ai/channels/feishu)
+
+项目不会承诺尚无官方稳定插件的微信、企业微信或钉钉入口；其他模型和渠道使用 OpenClaw 完整官方向导。
+
+### 安全与隐私
+
+- Companion 不读取、接收、保存或记录 API Key、Bot Token、Cookie、密码或聊天内容。
+- 认证输入直接发生在 OpenClaw 官方交互流程中。
+- 默认不保存运行日志；`--verbose` 输出会脱敏常见密钥、授权头、Cookie、URL 查询令牌和私钥内容。
+- 诊断包只保存在本地。官方已执行脱敏，但分享前仍应自行检查。
+- 更新失败不会自动恢复；CLI 会保留备份位置并提示使用官方恢复流程。
+- 不包含应用内遥测。项目数据只来自 npm、GitHub Stars/Forks、Issues、Releases 和 CI。
+
+详见 [Security Policy](SECURITY.md)。
+
+### 开发与验证
 
 ```bash
-openclaw channels add --channel telegram --token YOUR_BOT_TOKEN
+pnpm install --frozen-lockfile
+pnpm check
+pnpm audit --audit-level high
+pnpm pack --dry-run
 ```
 
-#### Discord（Bot Token）
+PR 会在 Windows、macOS、Ubuntu、Debian 和受支持的 Node.js 版本上运行模拟测试；每晚无密钥安装 OpenClaw 稳定版并执行隔离 smoke test。测试不连接真实模型，也不会产生 API 费用。
+
+历史 v1 源码和恢复点保留在 [`v1.0.0`](https://github.com/JFroson0610/openclaw-easy-deploy/releases/tag/v1.0.0)。迁移说明见 [v1 → v2](docs/migration-v1-v2.md)。
+
+## English
+
+### What it solves
+
+OpenClaw already ships installers, onboarding, Doctor, update, backup, and diagnostics tooling. OpenClaw Companion does not reimplement those capabilities. It combines official commands into workflows that are easier to understand and harder to misuse.
+
+```text
+You
+└─ OpenClaw Companion: localized guidance, impact previews, confirmation, normalized results
+   └─ Official OpenClaw CLI: install, authenticate, configure, update, back up, repair, diagnose
+      └─ Your local OpenClaw data
+```
+
+It is designed for new and lightly technical users on Windows, macOS, Ubuntu, and Debian. It is not a web panel, desktop GUI, OpenClaw fork, or separately maintained background service.
+
+### Core capabilities
+
+| Capability | What Companion does | Safety boundary |
+|---|---|---|
+| Setup | Checks the environment, highlights Qwen, Kimi, DeepSeek, MiniMax, and Feishu, then opens official flows | Never accepts or stores credentials |
+| Check | Combines version, update, Gateway, Doctor, and optional channel probes | Read-only |
+| Upgrade | Preview → verified backup → confirmation → official update → post-upgrade checks | Stops when backup fails |
+| Backup | Calls official `backup create --verify` | Never copies live SQLite files itself |
+| Repair | Runs read-only Doctor, explains impact, backs up, then confirms repair and restart separately | No silent configuration changes |
+| Support | Calls the official sanitized diagnostics exporter and reports the local path | Never uploads automatically |
+
+All Companion-owned prompts are available in English and Simplified Chinese. Locale priority is `--lang` → `OPENCLAW_COMPANION_LANG` → system locale → English.
+
+### Installation
+
+Requirements:
+
+- Windows 10/11, macOS 13+, Ubuntu 22.04/24.04, or Debian 12.
+- Node.js 22.22.3+, 24.15+, 25.9+, or 26; Node 23 is explicitly unsupported.
+- OpenClaw 2026.5.29 or newer. When it is missing, the compatibility launcher asks before invoking the official installer.
+
+Current Beta:
 
 ```bash
-openclaw channels add --channel discord --token YOUR_BOT_TOKEN
+npm install -g openclaw-companion@next
+openclaw-companion setup
 ```
 
-更多详情请查看 [官方文档](https://docs.openclaw.ai/channels)。
+The npm registry automatically creates a `latest` tag for the first release of a new package, so an untagged install currently resolves to this Beta as well. Testers should explicitly use `@next` to make their intent clear and ease the later transition. Untagged installation will be promoted only after the stable-release gate is complete:
 
-### 🤝 贡献
+```bash
+npm install -g openclaw-companion
+openclaw-companion setup
+```
 
-欢迎贡献！如果您发现问题或有改进建议，请：
-- 提交 Issue: [GitHub Issues](https://github.com/JFroson0610/openclaw-easy-deploy/issues)
-- 提交 Pull Request: [GitHub PRs](https://github.com/JFroson0610/openclaw-easy-deploy/pulls)
+The legacy one-command URLs remain valid and install the new Companion from the default branch:
 
-### 📄 许可证
+```bash
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/main/install.sh | bash
+```
 
-MIT License - 详见 [LICENSE](LICENSE)
+```powershell
+# Windows PowerShell
+irm https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/main/install.ps1 | iex
+```
 
-### 🙏 致谢
+Inspect remote scripts before executing them. The launcher uses the official npm registry by default. If that registry fails, it can use `registry.npmmirror.com` for the current process only after explicit consent; it never runs `npm config set`.
 
-本项目基于 [OpenClaw](https://github.com/openclaw/openclaw) 构建，感谢 OpenClaw 团队的出色工作！
+Run from source:
 
----
+```bash
+git clone https://github.com/JFroson0610/openclaw-easy-deploy.git
+cd openclaw-easy-deploy
+pnpm install --frozen-lockfile
+pnpm build
+node dist/cli.js check --json
+```
 
-**注意**: 本项目是社区贡献的简化安装工具，不是 OpenClaw 官方项目。
+### Commands
 
+Running `openclaw-companion` without a command is equivalent to `openclaw-companion menu`.
+
+| Command | Behavior | Mutates state? |
+|---|---|---|
+| `menu` | Opens the bilingual interactive menu | Depends on the selected action |
+| `setup` | Checks the environment and opens official model/Feishu flows | Yes, through official flows |
+| `check` | Combines version, update, Gateway, model/channel status, and Doctor checks | No |
+| `upgrade` | Previews, backs up, updates, and runs post-upgrade checks | Yes, after confirmation |
+| `backup` | Creates and verifies an official backup | Writes only the backup artifact |
+| `repair` | Inspects, explains impact, backs up, and confirms repairs step by step | Yes, after confirmation |
+| `support` | Creates an official sanitized diagnostics bundle locally | Writes only the local bundle |
+
+Common examples:
+
+```bash
+openclaw-companion check
+openclaw-companion check --deep
+openclaw-companion check --json
+openclaw-companion check --json --strict
+openclaw-companion upgrade --dry-run
+openclaw-companion upgrade --channel beta
+openclaw-companion backup --output ./backups
+openclaw-companion repair --dry-run
+openclaw-companion support --output ./support
+```
+
+Global options:
+
+| Option | Description |
+|---|---|
+| `--lang auto\|zh-CN\|en` | Select the interface language |
+| `--json` | Emit machine-readable output; interactive `setup` supports it only with `--dry-run` |
+| `--verbose` | Show redacted raw output from official commands |
+| `--yes` | Skip explicit confirmations only; never skips the pre-upgrade backup |
+| `--dry-run` | Preview install, upgrade, repair, or backup actions |
+| `--strict` | Make `check` return nonzero for warnings as well as errors |
+| `--deep` | Add channel network probes to `check` |
+| `--output <path>` | Choose a backup or diagnostics destination |
+| `--channel stable\|beta` | Select the official OpenClaw update channel |
+
+### `check --json`
+
+The command emits a stable schema-versioned envelope. Unknown additive upstream fields are ignored. Missing fields or non-JSON output degrade to a warning instead of crashing. Gateway reachability failures, Doctor errors, critical security findings, and available updates are classified separately.
+
+```json
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-01T00:00:00.000Z",
+  "locale": "en",
+  "openclawVersion": "2026.8.1",
+  "overall": "warning",
+  "checks": [
+    {
+      "id": "openclaw/update",
+      "status": "warning",
+      "summary": "An OpenClaw update is available.",
+      "sourceCommand": "openclaw update status --json",
+      "fixHint": "Run the official installer or update to the current stable release."
+    }
+  ]
+}
+```
+
+Exit codes:
+
+- `0`: the command completed with no errors; with `--strict`, it also has no warnings.
+- `1`: checks completed and found an error; with `--strict`, warnings also return `1`.
+- `2`: arguments, runtime prerequisites, or an official command could not be started correctly.
+
+### China-focused providers and Feishu
+
+The `setup` landing screen highlights Qwen, Moonshot/Kimi, DeepSeek, MiniMax, and Feishu when official integration paths exist. Authentication still happens inside `openclaw onboard`, `openclaw configure`, or `openclaw channels login`.
+
+- [Official Qwen integration](https://docs.openclaw.ai/providers/qwen)
+- [Official Moonshot/Kimi integration](https://docs.openclaw.ai/concepts/model-providers)
+- [Official DeepSeek integration](https://docs.openclaw.ai/providers/deepseek)
+- [Official MiniMax integration](https://docs.openclaw.ai/providers/minimax)
+- [Official Feishu integration](https://docs.openclaw.ai/channels/feishu)
+
+WeChat, WeCom, and DingTalk are not promoted until an official stable plugin exists. Other providers and channels remain available through OpenClaw's complete official wizards.
+
+### Security and privacy
+
+- Companion never reads, accepts, stores, or logs API keys, bot tokens, cookies, passwords, or chat content.
+- Credential input happens directly inside official OpenClaw interactive flows.
+- Runtime logs are not persisted by default. `--verbose` redacts common credentials, authorization headers, cookies, URL query tokens, and private-key blocks.
+- Diagnostics bundles stay local. OpenClaw sanitizes them, but users should still review them before sharing.
+- Failed upgrades are not rolled back automatically. The verified backup is retained for the documented manual recovery flow.
+- There is no in-app telemetry. Project metrics come only from npm and public GitHub activity.
+
+See the [Security Policy](SECURITY.md).
+
+### Development and verification
+
+```bash
+pnpm install --frozen-lockfile
+pnpm check
+pnpm audit --audit-level high
+pnpm pack --dry-run
+```
+
+Pull requests run simulated tests on Windows, macOS, Ubuntu, Debian, and every supported Node.js line. A nightly no-key smoke test installs the latest stable OpenClaw release in isolated state. It never calls a real model or incurs API usage.
+
+The historical v1 source and recovery point remain available in the [`v1.0.0` release](https://github.com/JFroson0610/openclaw-easy-deploy/releases/tag/v1.0.0). See the [v1 → v2 migration guide](docs/migration-v1-v2.md).
+
+## License
+
+[MIT](LICENSE)

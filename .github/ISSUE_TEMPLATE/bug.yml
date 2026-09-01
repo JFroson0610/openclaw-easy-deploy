@@ -1,0 +1,34 @@
+name: Bug report
+description: Report a reproducible OpenClaw Companion problem
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Never paste API keys, tokens, cookies, passwords, or an unreviewed diagnostics bundle."
+  - type: input
+    id: version
+    attributes:
+      label: Companion version
+      placeholder: "openclaw-companion --version or package version"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [Windows, macOS, Ubuntu, Debian, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
