@@ -29,17 +29,33 @@ jobs:
         run: test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
       - name: Publish beta
         if: vars.NPM_TRUSTED_PUBLISHING_READY == 'true' && contains(github.ref_name, 'beta')
-        run: npm publish --provenance --access public --tag next
+        shell: bash
+        run: |
+          package_name=$(node -p "require('./package.json').name")
+          package_version=$(node -p "require('./package.json').version")
+          if npm view "$package_name@$package_version" version >/dev/null 2>&1; then
+            echo "$package_name@$package_version is already published; skipping."
+          else
+            npm publish --provenance --access public --tag next
+          fi
       - name: Publish stable
         if: vars.NPM_TRUSTED_PUBLISHING_READY == 'true' && !contains(github.ref_name, 'beta')
-        run: npm publish --provenance --access public --tag latest
+        shell: bash
+        run: |
+          package_name=$(node -p "require('./package.json').name")
+          package_version=$(node -p "require('./package.json').version")
+          if npm view "$package_name@$package_version" version >/dev/null 2>&1; then
+            echo "$package_name@$package_version is already published; skipping."
+          else
+            npm publish --provenance --access public --tag latest
+          fi
       - name: Create GitHub prerelease
         if: contains(github.ref_name, 'beta')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --generate-notes --prerelease
+        run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --generate-notes --prerelease
       - name: Create GitHub stable release
         if: ${{ !contains(github.ref_name, 'beta') }}
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --generate-notes
+        run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --generate-notes
