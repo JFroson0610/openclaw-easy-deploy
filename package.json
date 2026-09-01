@@ -16,7 +16,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "tsc -p tsconfig.json && node --test test/*.test.js",
     "test:coverage": "tsc -p tsconfig.json && node --test --experimental-test-coverage test/*.test.js",
-    "check": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.json && node --test test/*.test.js",
+    "lint:docs": "markdownlint-cli2 README.md '*.md' 'docs/*.md' '.github/*.md'",
+    "check": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.json && node --test test/*.test.js && pnpm lint:docs",
     "prepack": "pnpm check"
   },
   "keywords": [
@@ -43,6 +44,7 @@
   "packageManager": "pnpm@11.19.0",
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "markdownlint-cli2": "^0.23.2",
     "typescript": "^5.9.0"
   }
 }

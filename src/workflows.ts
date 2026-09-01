@@ -62,6 +62,13 @@ async function installOfficial(ctx: WorkflowContext): Promise<CommandResult> {
   return await run(ctx, "bash", ["-c", "curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- --no-onboard"], true);
 }
 
+async function gatewayRestartArgs(ctx: WorkflowContext): Promise<string[]> {
+  const capability = await run(ctx, "openclaw", ["gateway", "restart", "--help"]);
+  return capability.exitCode === 0 && /(^|\s)--safe(?:\s|,|$)/m.test(`${capability.stdout}\n${capability.stderr}`)
+    ? ["gateway", "restart", "--safe"]
+    : ["gateway", "restart"];
+}
+
 export async function setup(ctx: WorkflowContext): Promise<ActionReport> {
   const adapter = new OpenClawAdapter(ctx.runner);
   const steps: ActionStep[] = [];
@@ -74,6 +81,10 @@ export async function setup(ctx: WorkflowContext): Promise<ActionReport> {
     const installSummary = ctx.options.dryRun ? ctx.t("dryRun") : install.exitCode === 0 ? ctx.t("completed") : ctx.t("missingOpenClaw");
     steps.push(step("setup/install", installStatus, installSummary, install));
     if (install.exitCode !== 0 || ctx.options.dryRun) return report(ctx, "setup", steps);
+    if (!(await adapter.available())) {
+      steps.push(step("setup/path", "error", ctx.t("missingOpenClaw")));
+      return report(ctx, "setup", steps);
+    }
   }
 
   let choice = "3";
@@ -125,7 +136,7 @@ export async function upgrade(ctx: WorkflowContext): Promise<ActionReport> {
     return report(ctx, "upgrade", steps);
   }
   const updateArgs = ["update", "--json"];
-  if (ctx.options.channel === "beta") updateArgs.push("--channel", "beta");
+  if (ctx.options.channel) updateArgs.push("--channel", ctx.options.channel);
   const update = await run(ctx, "openclaw", updateArgs);
   steps.push(step("upgrade/apply", update.exitCode === 0 ? "ok" : "error", update.exitCode === 0 ? ctx.t("upgradeOk") : ctx.t("upgradeFailed"), update));
   if (update.exitCode !== 0) return report(ctx, "upgrade", steps);
@@ -143,23 +154,49 @@ export async function repair(ctx: WorkflowContext): Promise<ActionReport> {
   const doctorParsed = parseJsonLoose(doctor.stdout);
   const inspectStatus = doctor.exitCode === 0 ? "ok" : doctorParsed !== undefined ? "warning" : "error";
   steps.push(step("repair/inspect", inspectStatus, inspectStatus === "ok" ? ctx.t("checkOk") : inspectStatus === "warning" ? ctx.t("checkWarning") : ctx.t("checkError"), doctor));
-  if (inspectStatus === "error" || ctx.options.dryRun) return report(ctx, "repair", steps);
+  if (inspectStatus === "error") return report(ctx, "repair", steps);
 
-  const backupReport = await backup(ctx, true);
-  steps.push(...backupReport.steps);
-  if (backupReport.overall === "error") return report(ctx, "repair", steps);
   ctx.note(ctx.t("repairImpact"));
-  if (!(await confirm(ctx.t("confirmRepair"), ctx.options.yes))) {
-    steps.push(step("repair/fix", "skipped", ctx.t("cancelled")));
+  if (ctx.options.dryRun) {
+    const restartArgs = await gatewayRestartArgs(ctx);
+    steps.push(step("repair/backup-preview", "skipped", `${ctx.t("dryRun")} openclaw backup create --only-config --verify --json`));
+    steps.push(step("repair/fix-preview", "skipped", `${ctx.t("dryRun")} openclaw doctor --fix`));
+    steps.push(step("repair/restart-preview", "skipped", `${ctx.t("dryRun")} ${commandText("openclaw", restartArgs)}`));
     return report(ctx, "repair", steps);
   }
-  const fixArgs = ["doctor", "--fix"];
-  if (ctx.options.yes || ctx.options.json) fixArgs.push("--non-interactive");
-  const fix = await run(ctx, "openclaw", fixArgs, !ctx.options.yes && !ctx.options.json);
-  steps.push(step("repair/fix", fix.exitCode === 0 ? "ok" : "error", fix.exitCode === 0 ? ctx.t("repairOk") : ctx.t("checkError"), fix));
-  if (fix.exitCode === 0 && await confirm(ctx.t("confirmRestart"), ctx.options.yes)) {
-    const restart = await run(ctx, "openclaw", ["gateway", "restart"]);
+
+  let choice = ctx.options.yes ? "3" : "4";
+  if (!ctx.options.yes && process.stdin.isTTY) choice = await ask(ctx.t("chooseRepair"));
+  if (!["1", "2", "3", "4"].includes(choice)) {
+    steps.push(step("repair/choice", "warning", ctx.t("invalidChoice")));
+    return report(ctx, "repair", steps);
+  }
+  if (choice === "4") {
+    steps.push(step("repair/choice", "skipped", ctx.t("cancelled")));
+    return report(ctx, "repair", steps);
+  }
+
+  if (choice === "1" || choice === "3") {
+    const backupReport = await backup(ctx, true);
+    steps.push(...backupReport.steps);
+    if (backupReport.overall === "error") return report(ctx, "repair", steps);
+    if (!(await confirm(ctx.t("confirmRepair"), ctx.options.yes))) {
+      steps.push(step("repair/fix", "skipped", ctx.t("cancelled")));
+      return report(ctx, "repair", steps);
+    }
+    const fixArgs = ["doctor", "--fix"];
+    if (ctx.options.yes || ctx.options.json) fixArgs.push("--non-interactive");
+    const fix = await run(ctx, "openclaw", fixArgs, !ctx.options.yes && !ctx.options.json);
+    steps.push(step("repair/fix", fix.exitCode === 0 ? "ok" : "error", fix.exitCode === 0 ? ctx.t("repairOk") : ctx.t("checkError"), fix));
+    if (fix.exitCode !== 0) return report(ctx, "repair", steps);
+  }
+
+  if ((choice === "2" || choice === "3") && await confirm(ctx.t("confirmRestart"), ctx.options.yes)) {
+    const restartArgs = await gatewayRestartArgs(ctx);
+    const restart = await run(ctx, "openclaw", restartArgs);
     steps.push(step("repair/restart", restart.exitCode === 0 ? "ok" : "error", restart.exitCode === 0 ? ctx.t("repairOk") : ctx.t("checkError"), restart));
+  } else if (choice === "2" || choice === "3") {
+    steps.push(step("repair/restart", "skipped", ctx.t("cancelled")));
   }
   return report(ctx, "repair", steps);
 }

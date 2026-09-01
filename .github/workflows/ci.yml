@@ -99,8 +99,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: bash -n install.sh bin/openclaw-manager
-      - run: shellcheck install.sh bin/openclaw-manager
+      - run: bash -n install.sh bin/openclaw-manager test/bootstrap.sh
+      - run: shellcheck install.sh bin/openclaw-manager test/bootstrap.sh
+      - run: bash test/bootstrap.sh
 
   powershell:
     name: PowerShell bootstrap
@@ -112,12 +113,18 @@ jobs:
         run: |
           Set-PSRepository PSGallery -InstallationPolicy Trusted
           Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
-          $results = @(Invoke-ScriptAnalyzer ./install.ps1 -Severity Error)
+          $results = @(Invoke-ScriptAnalyzer ./install.ps1, ./test/bootstrap.ps1 -Severity Error)
           $results | Format-Table
           if ($results.Count -gt 0) { exit 1 }
+      - name: Simulate legacy bootstrap with Windows PowerShell 5.1
+        shell: powershell
+        run: ./test/bootstrap.ps1
       - name: Analyze with PowerShell 7
         shell: pwsh
         run: |
-          $results = @(Invoke-ScriptAnalyzer ./install.ps1 -Severity Error)
+          $results = @(Invoke-ScriptAnalyzer ./install.ps1, ./test/bootstrap.ps1 -Severity Error)
           $results | Format-Table
           if ($results.Count -gt 0) { exit 1 }
+      - name: Simulate legacy bootstrap with PowerShell 7
+        shell: pwsh
+        run: ./test/bootstrap.ps1

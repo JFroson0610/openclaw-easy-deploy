@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { resolveLocale, translator } from "../dist/i18n.js";
-import { OpenClawAdapter, parseJsonLoose } from "../dist/openclaw.js";
+import { extractOpenClawVersion, OpenClawAdapter, parseJsonLoose } from "../dist/openclaw.js";
 import { redact } from "../dist/redact.js";
 import { isOpenClawAtLeast, validateNodeVersion } from "../dist/version.js";
 import { backup, repair, upgrade } from "../dist/workflows.js";
@@ -56,6 +57,12 @@ test("checks the OpenClaw compatibility baseline without rejecting unknown forma
   assert.equal(isOpenClawAtLeast("dev"), true);
 });
 
+test("extracts the official date version instead of the trailing commit id", () => {
+  assert.equal(extractOpenClawVersion("OpenClaw 2026.8.1 (ea80657)\n"), "2026.8.1");
+  assert.equal(extractOpenClawVersion("openclaw v2.3.4-beta.1"), "2.3.4-beta.1");
+  assert.equal(extractOpenClawVersion("development build"), null);
+});
+
 test("selects Chinese from the system locale and falls back to English", () => {
   assert.equal(resolveLocale("auto", { LANG: "zh_CN.UTF-8" }), "zh-CN");
   assert.equal(resolveLocale("auto", { LANG: "fr_FR.UTF-8" }), "en");
@@ -63,9 +70,9 @@ test("selects Chinese from the system locale and falls back to English", () => {
 });
 
 test("redacts common credentials", () => {
-  const text = "api_key=sk-secretvalue token: abcdefghijkl password=hunter2 Authorization: Bearer abc.def.ghi";
+  const text = "api_key=sk-secretvalue token: abcdefghijkl password=hunter2 Authorization: Bearer abc.def.ghi \"apiKey\":\"json-secret\" https://example.test/?access_token=url-secret xoxb-123456789-secret";
   const clean = redact(text);
-  assert.doesNotMatch(clean, /secretvalue|abcdefghijkl|hunter2|abc\.def\.ghi/);
+  assert.doesNotMatch(clean, /secretvalue|abcdefghijkl|hunter2|abc\.def\.ghi|json-secret|url-secret|123456789-secret/);
   assert.match(clean, /REDACTED/);
 });
 
@@ -106,6 +113,35 @@ test("marks unhealthy doctor findings as errors", async () => {
   assert.equal(report.overall, "error");
 });
 
+test("keeps warning-only Doctor findings as warnings", async () => {
+  const results = {
+    "openclaw --version": result(["--version"], 0, "OpenClaw 2026.8.1 (abc123)"),
+    "openclaw status --all --json": result(["status", "--all", "--json"]),
+    "openclaw update status --json": result(["update", "status", "--json"]),
+    "openclaw gateway status --deep --json": result(["gateway", "status", "--deep", "--json"]),
+    "openclaw doctor --json": result(["doctor", "--json"], 0, '{"ok":false,"findings":[{"severity":"warning"}]}'),
+  };
+  const adapter = new OpenClawAdapter(new FakeRunner(results));
+  const { report } = await adapter.check("en", translator("en"), false);
+  assert.equal(report.openclawVersion, "2026.8.1");
+  assert.equal(report.checks.find((item) => item.id === "openclaw/doctor").status, "warning");
+});
+
+test("detects a stopped Gateway and an available update from official JSON shapes", async () => {
+  const results = {
+    "openclaw --version": result(["--version"], 0, "OpenClaw 2026.8.1 (abc123)"),
+    "openclaw status --all --json": result(["status", "--all", "--json"], 0, '{"gateway":{"reachable":false}}'),
+    "openclaw update status --json": result(["update", "status", "--json"], 0, '{"availability":{"available":true,"hasRegistryUpdate":true}}'),
+    "openclaw gateway status --deep --json": result(["gateway", "status", "--deep", "--json"], 0, '{"rpc":{"ok":false,"connectFailure":{"kind":"unreachable"}}}'),
+    "openclaw doctor --json": result(["doctor", "--json"], 0, '{"ok":true,"findings":[]}'),
+  };
+  const adapter = new OpenClawAdapter(new FakeRunner(results));
+  const { report } = await adapter.check("en", translator("en"), false);
+  assert.equal(report.overall, "error");
+  assert.equal(report.checks.find((item) => item.id === "openclaw/update").status, "warning");
+  assert.equal(report.checks.find((item) => item.id === "openclaw/gateway").status, "error");
+});
+
 test("degrades unsupported and non-JSON official output without crashing", async () => {
   const results = {
     "openclaw --version": result(["--version"], 0, "2026.8.1"),
@@ -144,18 +180,74 @@ test("upgrade stops before mutation when verified backup fails", async () => {
   assert.deepEqual(runner.calls.map((call) => call.args), [previewArgs, backupArgs]);
 });
 
+test("upgrade forwards an explicit stable channel after the verified backup", async () => {
+  const previewArgs = ["update", "--dry-run", "--json"];
+  const backupArgs = ["backup", "create", "--verify", "--json"];
+  const updateArgs = ["update", "--json", "--channel", "stable"];
+  const postArgs = ["doctor", "--post-upgrade", "--json"];
+  const gatewayArgs = ["gateway", "status", "--deep", "--json"];
+  const runner = new FakeRunner({
+    [["openclaw", ...previewArgs].join(" ")]: result(previewArgs),
+    [["openclaw", ...backupArgs].join(" ")]: result(backupArgs, 0, '{"path":"./backup.tar.gz"}'),
+    [["openclaw", ...updateArgs].join(" ")]: result(updateArgs),
+    [["openclaw", ...postArgs].join(" ")]: result(postArgs),
+    [["openclaw", ...gatewayArgs].join(" ")]: result(gatewayArgs),
+  });
+  const report = await upgrade(context(runner, { command: "upgrade", channel: "stable" }));
+  assert.equal(report.overall, "ok");
+  assert.deepEqual(runner.calls.map((call) => call.args), [previewArgs, backupArgs, updateArgs, postArgs, gatewayArgs]);
+});
+
+test("repair dry-run shows every planned mutation without creating a backup", async () => {
+  const doctorArgs = ["doctor", "--json"];
+  const helpArgs = ["gateway", "restart", "--help"];
+  const runner = new FakeRunner({
+    [["openclaw", ...doctorArgs].join(" ")]: result(doctorArgs, 0, '{"ok":false,"findings":[{"severity":"warning"}]}'),
+    [["openclaw", ...helpArgs].join(" ")]: result(helpArgs, 0, "Options: --safe"),
+  });
+  const report = await repair(context(runner, { command: "repair", dryRun: true }));
+  assert.deepEqual(runner.calls.map((call) => call.args), [doctorArgs, helpArgs]);
+  assert.deepEqual(report.steps.map((entry) => entry.id), ["repair/inspect", "repair/backup-preview", "repair/fix-preview", "repair/restart-preview"]);
+});
+
 test("repair can act on valid Doctor findings only after a verified config backup", async () => {
   const doctorArgs = ["doctor", "--json"];
   const backupArgs = ["backup", "create", "--only-config", "--verify", "--json"];
   const fixArgs = ["doctor", "--fix", "--non-interactive"];
-  const restartArgs = ["gateway", "restart"];
+  const helpArgs = ["gateway", "restart", "--help"];
+  const restartArgs = ["gateway", "restart", "--safe"];
   const runner = new FakeRunner({
     [["openclaw", ...doctorArgs].join(" ")]: result(doctorArgs, 1, '{"ok":false,"findings":[{"severity":"error"}]}'),
     [["openclaw", ...backupArgs].join(" ")]: result(backupArgs, 0, '{"path":"./backup.tar.gz"}'),
     [["openclaw", ...fixArgs].join(" ")]: result(fixArgs),
+    [["openclaw", ...helpArgs].join(" ")]: result(helpArgs, 0, "Options: --safe"),
     [["openclaw", ...restartArgs].join(" ")]: result(restartArgs),
   });
   const report = await repair(context(runner, { command: "repair" }));
   assert.equal(report.overall, "warning");
-  assert.deepEqual(runner.calls.map((call) => call.args), [doctorArgs, backupArgs, fixArgs, restartArgs]);
+  assert.deepEqual(runner.calls.map((call) => call.args), [doctorArgs, backupArgs, fixArgs, helpArgs, restartArgs]);
+});
+
+test("CLI keeps the check schema and returns 2 when OpenClaw cannot be spawned", () => {
+  const invocation = spawnSync(process.execPath, ["dist/cli.js", "check", "--json", "--lang", "zh-CN"], {
+    encoding: "utf8",
+    env: { ...process.env, PATH: "/definitely-no-openclaw" },
+  });
+  const payload = JSON.parse(invocation.stdout);
+  assert.equal(invocation.status, 2);
+  assert.equal(payload.schemaVersion, 1);
+  assert.equal(payload.locale, "zh-CN");
+  assert.equal(payload.openclawVersion, null);
+  assert.equal(payload.overall, "error");
+});
+
+test("CLI emits a localized JSON error envelope for invalid arguments", () => {
+  const invocation = spawnSync(process.execPath, ["dist/cli.js", "check", "--json", "--lang", "zh-CN", "--bad-option"], {
+    encoding: "utf8",
+  });
+  const payload = JSON.parse(invocation.stdout);
+  assert.equal(invocation.status, 2);
+  assert.equal(payload.locale, "zh-CN");
+  assert.equal(payload.error.code, "unknown-option");
+  assert.match(payload.error.message, /未知选项/);
 });

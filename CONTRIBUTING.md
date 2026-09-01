@@ -12,4 +12,4 @@ Command execution must remain injectable. New mutating workflows require an impa
 
 ## Release process
 
-The first npm release must be performed manually by an owner with npm 2FA enabled. Publish the package before pushing its matching Git tag. After Trusted Publishing is configured, set the repository variable `NPM_TRUSTED_PUBLISHING_READY=true`; later version tags publish automatically with npm provenance.
+The first npm release must be performed manually by an owner with npm 2FA enabled. Publish the package before pushing its matching Git tag. A local first publication does not claim provenance. After Trusted Publishing is configured, set the repository variable `NPM_TRUSTED_PUBLISHING_READY=true`; later version tags publish automatically with npm provenance.

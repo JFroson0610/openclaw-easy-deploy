@@ -29,23 +29,81 @@ function source(result: CommandResult): string {
   return commandText(result.command, result.args);
 }
 
-function unsupported(result: CommandResult): boolean {
-  return /unknown (?:command|option)|unrecognized|not supported|not found/i.test(`${result.stderr}\n${result.stdout}`);
+function record(value: unknown): Record<string, unknown> | undefined {
+  return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
 }
 
-function parsedIsUnhealthy(parsed: unknown): boolean {
-  if (!parsed || typeof parsed !== "object") return false;
-  const value = parsed as Record<string, unknown>;
-  if (value.ok === false || value.healthy === false) return true;
-  if (typeof value.overall === "string" && /error|failed|unhealthy/i.test(value.overall)) return true;
-  if (Array.isArray(value.findings)) {
-    return value.findings.some((finding) => {
-      if (!finding || typeof finding !== "object") return false;
-      const level = (finding as Record<string, unknown>).severity ?? (finding as Record<string, unknown>).level;
-      return level === "error";
-    });
+function child(value: unknown, key: string): Record<string, unknown> | undefined {
+  return record(record(value)?.[key]);
+}
+
+function severityOf(value: unknown): "ok" | "warning" | "error" {
+  const findings = Array.isArray(record(value)?.findings) ? record(value)?.findings as unknown[] : [];
+  let status: "ok" | "warning" | "error" = "ok";
+  for (const finding of findings) {
+    const entry = record(finding);
+    const severity = String(entry?.severity ?? entry?.level ?? "").toLowerCase();
+    if (severity === "error" || severity === "critical" || severity === "fatal") return "error";
+    if (severity === "warning" || severity === "warn") status = "warning";
   }
-  return false;
+  return status;
+}
+
+function classifyParsed(id: string, parsed: unknown, t: T): Pick<CheckItem, "status" | "summary" | "fixHint"> {
+  const root = record(parsed);
+  if (!root) return { status: "warning", summary: t("checkWarning"), fixHint: null };
+
+  if (id === "openclaw/update") {
+    const availability = child(root, "availability");
+    const registry = child(child(root, "update"), "registry");
+    const updateAvailable = availability?.available === true
+      || availability?.hasGitUpdate === true
+      || availability?.hasRegistryUpdate === true;
+    if (updateAvailable) return { status: "warning", summary: t("updateAvailable"), fixHint: t("updateHint") };
+    if (availability || typeof registry?.latestVersion === "string") {
+      return { status: "ok", summary: t("checkOk"), fixHint: null };
+    }
+  }
+
+  if (id === "openclaw/doctor") {
+    const severity = severityOf(root);
+    if (severity === "error") return { status: "error", summary: t("checkIssuesFound"), fixHint: t("doctorHint") };
+    if (severity === "warning" || root.ok === false) {
+      return { status: "warning", summary: t("checkIssuesFound"), fixHint: null };
+    }
+    return { status: "ok", summary: t("checkOk"), fixHint: null };
+  }
+
+  if (id === "openclaw/gateway") {
+    const rpc = child(root, "rpc");
+    const gateway = child(root, "gateway");
+    if (rpc?.ok === false || gateway?.reachable === false) {
+      return { status: "error", summary: t("gatewayUnavailable"), fixHint: t("gatewayHint") };
+    }
+  }
+
+  if (id === "openclaw/status") {
+    const gateway = child(root, "gateway");
+    const securitySummary = child(child(root, "securityAudit"), "summary");
+    const taskAudit = child(root, "taskAudit");
+    if (gateway?.reachable === false || Number(securitySummary?.critical ?? 0) > 0 || Number(taskAudit?.errors ?? 0) > 0) {
+      return { status: "error", summary: gateway?.reachable === false ? t("gatewayUnavailable") : t("checkIssuesFound"), fixHint: gateway?.reachable === false ? t("gatewayHint") : null };
+    }
+    if (Number(securitySummary?.warn ?? 0) > 0 || Number(taskAudit?.warnings ?? 0) > 0
+      || (Array.isArray(root.degradedSecretOwners) && root.degradedSecretOwners.length > 0)
+      || (Array.isArray(root.degradedPlugins) && root.degradedPlugins.length > 0)) {
+      return { status: "warning", summary: t("checkIssuesFound"), fixHint: null };
+    }
+  }
+
+  if (root.ok === false || root.healthy === false) {
+    return { status: "error", summary: t("checkIssuesFound"), fixHint: null };
+  }
+  return { status: "ok", summary: t("checkOk"), fixHint: null };
+}
+
+function unsupported(result: CommandResult): boolean {
+  return /unknown (?:command|option)|unrecognized|not supported|not found/i.test(`${result.stderr}\n${result.stdout}`);
 }
 
 function itemFromResult(id: string, result: CommandResult, t: T): CheckItem {
@@ -68,12 +126,13 @@ function itemFromResult(id: string, result: CommandResult, t: T): CheckItem {
       fixHint: null,
     };
   }
+  const classification = classifyParsed(id, parsed, t);
   return {
     id,
-    status: parsedIsUnhealthy(parsed) ? "error" : "ok",
-    summary: parsedIsUnhealthy(parsed) ? t("checkError") : t("checkOk"),
+    status: classification.status,
+    summary: classification.summary,
     sourceCommand: source(result),
-    fixHint: parsedIsUnhealthy(parsed) ? t("updateHint") : null,
+    fixHint: classification.fixHint,
   };
 }
 
@@ -88,7 +147,7 @@ export class OpenClawAdapter {
 
   async version(): Promise<{ version: string | null; result: CommandResult }> {
     const result = await this.runner.run("openclaw", ["--version"]);
-    const version = result.exitCode === 0 ? result.stdout.trim().split(/\s+/).at(-1) ?? result.stdout.trim() : null;
+    const version = result.exitCode === 0 ? extractOpenClawVersion(result.stdout) : null;
     return { version: version || null, result };
   }
 
@@ -147,4 +206,11 @@ export class OpenClawAdapter {
       results,
     };
   }
+}
+
+export function extractOpenClawVersion(output: string): string | null {
+  const dateVersion = output.match(/\b\d{4}\.\d{1,2}\.\d{1,2}(?:[-+][0-9A-Za-z.-]+)?\b/);
+  if (dateVersion) return dateVersion[0];
+  const semver = output.match(/\bv?\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?\b/);
+  return semver?.[0]?.replace(/^v/, "") ?? null;
 }
