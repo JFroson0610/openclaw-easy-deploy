@@ -1,4 +1,4 @@
-# OpenClaw Companion v2 compatibility bootstrap for Windows.
+﻿# OpenClaw Companion v2 compatibility bootstrap for Windows.
 # Existing URL intentionally preserved for v1 users.
 
 [CmdletBinding()]
