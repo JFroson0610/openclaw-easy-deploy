@@ -113,7 +113,10 @@ jobs:
         run: |
           Set-PSRepository PSGallery -InstallationPolicy Trusted
           Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
-          $results = @(Invoke-ScriptAnalyzer ./install.ps1, ./test/bootstrap.ps1 -Severity Error)
+          $results = @(
+            Invoke-ScriptAnalyzer ./install.ps1 -Severity Error
+            Invoke-ScriptAnalyzer ./test/bootstrap.ps1 -Severity Error
+          )
           $results | Format-Table
           if ($results.Count -gt 0) { exit 1 }
       - name: Simulate legacy bootstrap with Windows PowerShell 5.1
@@ -122,7 +125,10 @@ jobs:
       - name: Analyze with PowerShell 7
         shell: pwsh
         run: |
-          $results = @(Invoke-ScriptAnalyzer ./install.ps1, ./test/bootstrap.ps1 -Severity Error)
+          $results = @(
+            Invoke-ScriptAnalyzer ./install.ps1 -Severity Error
+            Invoke-ScriptAnalyzer ./test/bootstrap.ps1 -Severity Error
+          )
           $results | Format-Table
           if ($results.Count -gt 0) { exit 1 }
       - name: Simulate legacy bootstrap with PowerShell 7
