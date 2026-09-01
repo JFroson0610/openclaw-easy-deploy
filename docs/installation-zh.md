@@ -1,6 +1,6 @@
 # OpenClaw Companion 中文安装指南
 
-> v2 当前处于发布前 Beta 阶段，`openclaw-companion` 尚未首次发布到 npm。源码和 CI 已就绪；npm 首次发布必须由仓库所有者开启 2FA 后手动完成。
+> `openclaw-companion@2.0.0-beta.1` 已发布到 npm 的 `next` 渠道。正式版仍需完成至少 14 天 Beta 观察，并解决所有 P0/P1 安全或安装问题。
 
 ## 前置条件
 
@@ -8,14 +8,16 @@
 - 已安装官方 OpenClaw；若未安装，兼容启动器会在确认后调用官方安装器。
 - Node.js 版本需符合 OpenClaw 官方要求。
 
-## Beta 发布后的推荐安装
+## 当前 Beta 推荐安装
 
 ```bash
 npm install -g openclaw-companion@next
 openclaw-companion setup --lang zh-CN
 ```
 
-正式版发布后，将 `@next` 去掉即可。发布前如需验证，请从 `feat/v2-companion` 分支克隆源码，运行 `pnpm install --frozen-lockfile && pnpm build`，再使用 `node dist/cli.js`。
+npm 会为全新包的首次发布自动建立 `latest` 标签，因此不带标签目前也会安装这个 Beta。测试用户仍应明确使用 `@next`；正式版完成观察期后才推广无标签安装。
+
+如需从源码验证，请克隆仓库，运行 `pnpm install --frozen-lockfile && pnpm build`，再使用 `node dist/cli.js`。
 
 安装程序不会要求你把 API Key 输入给 OpenClaw Companion。模型和渠道认证均由官方 `openclaw onboard`、`openclaw configure` 和 `openclaw channels login` 完成。
 

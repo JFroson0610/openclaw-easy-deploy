@@ -4,17 +4,18 @@
 >
 > A bilingual operations companion that safely orchestrates official OpenClaw setup, checks, upgrades, backups, repairs, and diagnostics.
 
-[![CI](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/ci.yml/badge.svg?branch=feat%2Fv2-companion)](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/ci.yml)
+[![CI](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/ci.yml)
+[![npm beta](https://img.shields.io/npm/v/openclaw-companion/next?label=npm%20beta)](https://www.npmjs.com/package/openclaw-companion)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status: v2 beta](https://img.shields.io/badge/status-v2%20beta-blue.svg)](https://github.com/JFroson0610/openclaw-easy-deploy/pull/1)
+[![Status: v2 beta](https://img.shields.io/badge/status-v2%20beta-blue.svg)](https://github.com/JFroson0610/openclaw-easy-deploy/releases/tag/v2.0.0-beta.1)
 [![Telemetry: none](https://img.shields.io/badge/telemetry-none-success.svg)](SECURITY.md)
 
 [中文](#中文) · [English](#english)
 
 > [!IMPORTANT]
-> **v2 发布状态：** 代码和跨平台模拟测试已经就绪，但 `openclaw-companion` 尚未首次发布到 npm。首次发布必须由仓库所有者开启 npm 2FA 后手动完成。在此之前，请勿把下方 npm 命令当作已可用的正式安装方式。
+> **v2 发布状态：** `2.0.0-beta.1` 已发布到 npm，推荐明确使用 `openclaw-companion@next` 安装。正式版仍需完成至少 14 天 Beta 观察，并解决所有 P0/P1 安全或安装问题。
 >
-> **v2 release status:** The code and cross-platform simulated tests are ready, but `openclaw-companion` has not received its first npm publication. The owner must perform that first publish manually with npm 2FA enabled. Until then, the npm commands below are release instructions, not a currently available installation path.
+> **v2 release status:** `2.0.0-beta.1` is available from npm. Install the explicit `openclaw-companion@next` tag. The stable release still requires at least 14 days of Beta observation and no unresolved P0/P1 security or installation issue.
 
 > [!WARNING]
 > 这是社区项目，并非 OpenClaw 官方产品。OpenClaw 名称、商标和上游代码归其各自权利人所有。
@@ -57,21 +58,21 @@ OpenClaw 已经提供安装器、配置向导、Doctor、更新、备份和诊�
 - Node.js 22.22.3+、24.15+、25.9+ 或 26；明确不支持 Node 23。
 - OpenClaw 2026.5.29 或更高版本；若缺失，兼容启动器会在确认后调用官方安装器。
 
-Beta 首次发布完成后：
+当前 Beta：
 
 ```bash
 npm install -g openclaw-companion@next
 openclaw-companion setup --lang zh-CN
 ```
 
-正式版发布后：
+npm 会为全新包的首次发布自动建立 `latest` 标签，因此不带标签目前也会得到这个 Beta。为清楚表达用途并方便未来切换，测试用户请始终显式使用 `@next`。正式版完成观察期后才会正式推广无标签安装：
 
 ```bash
 npm install -g openclaw-companion
 openclaw-companion setup --lang zh-CN
 ```
 
-旧版一键链接会在 v2 合并并完成 npm 发布后继续有效：
+旧版一键链接保持有效，并会通过主分支安装新版 Companion：
 
 ```bash
 # macOS / Linux
@@ -85,10 +86,10 @@ irm https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/main/inst
 
 远程脚本会先请求确认；建议先下载并检查内容再执行。它默认使用 npm 官方源，只有官方源失败且用户明确同意时，才为当前安装进程临时使用 `registry.npmmirror.com`，不会运行 `npm config set`。
 
-当前 Beta 源码预览：
+从源码运行：
 
 ```bash
-git clone --branch feat/v2-companion https://github.com/JFroson0610/openclaw-easy-deploy.git
+git clone https://github.com/JFroson0610/openclaw-easy-deploy.git
 cd openclaw-easy-deploy
 pnpm install --frozen-lockfile
 pnpm build
@@ -242,21 +243,21 @@ Requirements:
 - Node.js 22.22.3+, 24.15+, 25.9+, or 26; Node 23 is explicitly unsupported.
 - OpenClaw 2026.5.29 or newer. When it is missing, the compatibility launcher asks before invoking the official installer.
 
-After the first beta publication:
+Current Beta:
 
 ```bash
 npm install -g openclaw-companion@next
 openclaw-companion setup
 ```
 
-After the stable release:
+The npm registry automatically creates a `latest` tag for the first release of a new package, so an untagged install currently resolves to this Beta as well. Testers should explicitly use `@next` to make their intent clear and ease the later transition. Untagged installation will be promoted only after the stable-release gate is complete:
 
 ```bash
 npm install -g openclaw-companion
 openclaw-companion setup
 ```
 
-The legacy one-command URLs remain valid after v2 is merged and the npm package is published:
+The legacy one-command URLs remain valid and install the new Companion from the default branch:
 
 ```bash
 # macOS / Linux
@@ -270,10 +271,10 @@ irm https://raw.githubusercontent.com/JFroson0610/openclaw-easy-deploy/main/inst
 
 Inspect remote scripts before executing them. The launcher uses the official npm registry by default. If that registry fails, it can use `registry.npmmirror.com` for the current process only after explicit consent; it never runs `npm config set`.
 
-Preview the current beta source:
+Run from source:
 
 ```bash
-git clone --branch feat/v2-companion https://github.com/JFroson0610/openclaw-easy-deploy.git
+git clone https://github.com/JFroson0610/openclaw-easy-deploy.git
 cd openclaw-easy-deploy
 pnpm install --frozen-lockfile
 pnpm build

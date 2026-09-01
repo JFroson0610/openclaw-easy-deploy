@@ -13,11 +13,12 @@ This checklist separates completed engineering work from owner-only publication 
 
 ## `2.0.0-beta.1`
 
-- [ ] Owner enables npm 2FA.
-- [ ] Owner rechecks that `openclaw-companion` is still available.
-- [ ] Run `pnpm check`, `pnpm audit --audit-level high`, and `pnpm pack --dry-run` on the exact release commit.
-- [ ] Manually publish `2.0.0-beta.1` with npm tag `next` and 2FA. Local first publication does not claim provenance; later Trusted Publishing releases do.
-- [ ] Verify `npm view openclaw-companion@next version` returns `2.0.0-beta.1`.
+- [x] Owner enables npm 2FA.
+- [x] Owner rechecks that `openclaw-companion` is still available.
+- [x] Run `pnpm check`, `pnpm audit --audit-level high`, and `pnpm pack --dry-run` on the exact release commit.
+- [x] Manually publish `2.0.0-beta.1` with npm tag `next` and 2FA. Local first publication does not claim provenance; later Trusted Publishing releases do.
+- [x] Verify `npm view openclaw-companion@next version` returns `2.0.0-beta.1` and perform a clean-registry install/CLI smoke test.
+- [x] Record that npm automatically created `latest` for the first release of this new package; docs explicitly direct Beta testers to `@next` until stable promotion.
 - [ ] Push tag `v2.0.0-beta.1` and create a bilingual GitHub prerelease.
 - [ ] Only after npm verification, merge the v2 README/launchers so public one-command URLs cannot point to an unavailable package.
 
