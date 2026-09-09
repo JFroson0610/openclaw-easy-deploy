@@ -29,9 +29,13 @@ This checklist separates completed engineering work from owner-only publication 
 - [x] Fix npm-installed Windows OpenClaw startup without enabling a shell.
 - [x] Add Windows process regression tests and redacted nightly failure output.
 - [x] Include current bilingual README in the package.
-- [ ] Verify PR CI and official stable OpenClaw smoke checks on all three platforms.
-- [ ] Publish beta.2 to npm `next` and verify the registry package.
-- [ ] Create the matching GitHub prerelease.
+- [x] Verify PR CI and official stable OpenClaw smoke checks on all three platforms.
+- [x] Publish beta.2 to npm `next` and verify the registry package.
+- [x] Create the matching GitHub prerelease.
+
+Released 2026-09-09: [PR #8](https://github.com/JFroson0610/openclaw-easy-deploy/pull/8), [CI](https://github.com/JFroson0610/openclaw-easy-deploy/actions/runs/34358625531), [three-platform upstream checks](https://github.com/JFroson0610/openclaw-easy-deploy/actions/runs/34357819471), [OIDC publication](https://github.com/JFroson0610/openclaw-easy-deploy/actions/runs/34358965287), and [beta.2 release](https://github.com/JFroson0610/openclaw-easy-deploy/releases/tag/v2.0.0-beta.2).
+
+The npm `next` tag points to beta.2. The historical `latest` tag still points to beta.1 until stable promotion; documented Beta commands and both legacy launchers explicitly select `next`.
 
 ### Stable-release gates
 
@@ -45,4 +49,4 @@ This checklist separates completed engineering work from owner-only publication 
 - [ ] Confirm the package name, release commit, version, changelog, and bilingual release notes.
 - [ ] Publish npm `latest` and verify installation on Windows, macOS, and Ubuntu.
 - [ ] Create and verify the GitHub `v2.0.0` release.
-- [ ] Configure npm Trusted Publishing, then set `NPM_TRUSTED_PUBLISHING_READY=true` for later releases.
+- [x] Configure npm Trusted Publishing for `release.yml` and environment `npm`; beta.2 was published with provenance through this connection. The workflow publishes directly and no longer needs the old readiness variable.
