@@ -14,7 +14,7 @@ try {
     $previousPath = $env:PATH
     $env:PATH = "$mockBin;$previousPath"
     $env:MOCK_LOG = $mockLog
-    $env:OPENCLAW_COMPANION_SPEC = "openclaw-companion@next"
+    $env:OPENCLAW_COMPANION_SPEC = ""
 
     & (Join-Path $PSScriptRoot "..\install.ps1") -Lang en | Out-Null
     $commands = Get-Content $mockLog -Raw

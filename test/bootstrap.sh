@@ -20,7 +20,7 @@ ln -s mock-command "$mock_bin/npm"
 ln -s mock-command "$mock_bin/openclaw-companion"
 ln -s mock-command "$mock_bin/npx"
 
-PATH="$mock_bin:$PATH" MOCK_LOG="$mock_log" OPENCLAW_COMPANION_SPEC="openclaw-companion@next" \
+PATH="$mock_bin:$PATH" MOCK_LOG="$mock_log" OPENCLAW_COMPANION_SPEC="" \
   bash ./install.sh --lang en >/dev/null
 
 grep -F "npm ping --registry https://registry.npmjs.org" "$mock_log" >/dev/null

@@ -8,7 +8,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $OfficialInstaller = "https://openclaw.ai/install.ps1"
-$CompanionSpec = if ($env:OPENCLAW_COMPANION_SPEC) { $env:OPENCLAW_COMPANION_SPEC } else { "openclaw-companion@latest" }
+$CompanionSpec = if ($env:OPENCLAW_COMPANION_SPEC) { $env:OPENCLAW_COMPANION_SPEC } else { "openclaw-companion@next" }
 $OfficialRegistry = "https://registry.npmjs.org"
 $ChinaRegistry = "https://registry.npmmirror.com"
 
