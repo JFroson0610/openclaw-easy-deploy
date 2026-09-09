@@ -43,7 +43,10 @@ The owner explicitly waived the 14-day observation period and requested stable r
 
 ## `v2.0.0`
 
-- [ ] Confirm the package name, release commit, version, changelog, and bilingual release notes.
-- [ ] Publish npm `latest` and verify installation on Windows, macOS, and Ubuntu.
-- [ ] Create and verify the GitHub `v2.0.0` release.
+- [x] Confirm the package name, release commit, version, changelog, and bilingual release notes.
+- [x] Pass platform CI and real upstream compatibility checks on Windows, macOS, and Ubuntu.
+- [x] Publish npm `latest` and verify a fresh registry install, packaged README, and CLI JSON output locally.
+- [x] Create and verify the GitHub `v2.0.0` release.
 - [x] Configure npm Trusted Publishing for `release.yml` and environment `npm`; beta.2 was published with provenance through this connection. The workflow publishes directly and no longer needs the old readiness variable.
+
+Stable release completed on 2026-09-09: [PR #9](https://github.com/JFroson0610/openclaw-easy-deploy/pull/9), [platform CI](https://github.com/JFroson0610/openclaw-easy-deploy/actions/runs/34360722954), [upstream compatibility](https://github.com/JFroson0610/openclaw-easy-deploy/actions/runs/34360722990), [provenance publication](https://github.com/JFroson0610/openclaw-easy-deploy/actions/runs/34362024228), and [v2.0.0](https://github.com/JFroson0610/openclaw-easy-deploy/releases/tag/v2.0.0). npm `latest` resolves to `2.0.0`; `next` retains the historical beta.2. New installs and beta upgrades should use `latest`.
