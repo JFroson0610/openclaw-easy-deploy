@@ -1,6 +1,8 @@
 name: OpenClaw nightly compatibility
 
 on:
+  pull_request:
+    paths: ["src/**", "test/**", ".github/workflows/nightly.yml", "package.json", "pnpm-lock.yaml"]
   schedule:
     - cron: "23 3 * * *"
   workflow_dispatch:
