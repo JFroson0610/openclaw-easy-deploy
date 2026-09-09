@@ -5,7 +5,7 @@
 set -euo pipefail
 
 OFFICIAL_INSTALLER="https://openclaw.ai/install.sh"
-COMPANION_SPEC="${OPENCLAW_COMPANION_SPEC:-openclaw-companion@next}"
+COMPANION_SPEC="${OPENCLAW_COMPANION_SPEC:-openclaw-companion@latest}"
 OFFICIAL_REGISTRY="https://registry.npmjs.org"
 CHINA_REGISTRY="https://registry.npmmirror.com"
 

@@ -35,14 +35,11 @@ This checklist separates completed engineering work from owner-only publication 
 
 Released 2026-09-09: [PR #8](https://github.com/JFroson0610/openclaw-easy-deploy/pull/8), [CI](https://github.com/JFroson0610/openclaw-easy-deploy/actions/runs/34358625531), [three-platform upstream checks](https://github.com/JFroson0610/openclaw-easy-deploy/actions/runs/34357819471), [OIDC publication](https://github.com/JFroson0610/openclaw-easy-deploy/actions/runs/34358965287), and [beta.2 release](https://github.com/JFroson0610/openclaw-easy-deploy/releases/tag/v2.0.0-beta.2).
 
-The npm `next` tag points to beta.2. The historical `latest` tag still points to beta.1 until stable promotion; documented Beta commands and both legacy launchers explicitly select `next`.
+At the beta.2 release, `next` pointed to beta.2 and `latest` still pointed to beta.1. Stable v2.0.0 moves the recommended installation and both legacy launchers to `latest`.
 
 ### Stable-release gates
 
-- [ ] Run Beta for at least 14 days.
-- [ ] Keep all required three-platform checks green.
-- [ ] Resolve every P0/P1 security or installation issue.
-- [ ] Review npm downloads, Stars/Forks, platform issues, external contributors, CI pass rate, and severe-issue repair time without adding telemetry.
+The owner explicitly waived the 14-day observation period and requested stable release. This is a release-policy decision, not a claim that 14 days of observation occurred. Release checks and the existing safety rules remain in place. Growth metrics are optional maintenance information, not a release gate.
 
 ## `v2.0.0`
 

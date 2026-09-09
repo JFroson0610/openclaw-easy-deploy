@@ -1,6 +1,6 @@
 {
   "name": "openclaw-companion",
-  "version": "2.0.0-beta.2",
+  "version": "2.0.0",
   "description": "Bilingual, China-friendly operations companion for OpenClaw",
   "type": "module",
   "bin": {

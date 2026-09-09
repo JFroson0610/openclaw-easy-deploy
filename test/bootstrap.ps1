@@ -19,7 +19,7 @@ try {
     & (Join-Path $PSScriptRoot "..\install.ps1") -Lang en | Out-Null
     $commands = Get-Content $mockLog -Raw
     if ($commands -notmatch [regex]::Escape("npm ping --registry https://registry.npmjs.org")) { throw "npm ping was not called" }
-    if ($commands -notmatch [regex]::Escape("npm install -g openclaw-companion@next")) { throw "npm install was not called" }
+    if ($commands -notmatch [regex]::Escape("npm install -g openclaw-companion@latest")) { throw "npm install was not called" }
     if ($commands -notmatch [regex]::Escape("openclaw-companion setup --lang en")) { throw "Companion setup was not launched" }
     if ($commands -match "npm config set") { throw "bootstrap persisted npm configuration" }
 

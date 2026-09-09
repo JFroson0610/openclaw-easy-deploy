@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.0
+
+- Promote the verified beta.2 functionality to the stable channel at the owner's request, without a mandatory observation period.
+- Switch both legacy installers and bilingual installation instructions to npm `latest`.
+- Retain Windows, macOS, Linux, Node compatibility, backup safeguards, redaction, and automated upstream checks.
+- Publish through GitHub Trusted Publishing with provenance.
+
 ## 2.0.0-beta.2
 
 - Fixed Windows npm-installed OpenClaw startup by invoking the installed JavaScript entry without a shell.

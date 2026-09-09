@@ -24,7 +24,7 @@ PATH="$mock_bin:$PATH" MOCK_LOG="$mock_log" OPENCLAW_COMPANION_SPEC="" \
   bash ./install.sh --lang en >/dev/null
 
 grep -F "npm ping --registry https://registry.npmjs.org" "$mock_log" >/dev/null
-grep -F "npm install -g openclaw-companion@next" "$mock_log" >/dev/null
+grep -F "npm install -g openclaw-companion@latest" "$mock_log" >/dev/null
 grep -F "openclaw-companion setup --lang en" "$mock_log" >/dev/null
 if grep -F "npm config set" "$mock_log" >/dev/null; then
   echo "bootstrap persisted npm configuration" >&2
