@@ -1,6 +1,6 @@
 # OpenClaw Companion 中文安装指南
 
-> Beta 通过 npm 的 `next` 渠道发布，旧版一键链接也会安装此渠道的修正版。正式版仍需完成至少 14 天 Beta 观察，并解决所有 P0/P1 安全或安装问题。
+> v2.0.0 正式版使用 npm 的 `latest` 渠道，旧版一键链接也安装正式版。
 
 ## 前置条件
 
@@ -8,14 +8,14 @@
 - 已安装官方 OpenClaw；若未安装，兼容启动器会在确认后调用官方安装器。
 - Node.js 版本需符合 OpenClaw 官方要求。
 
-## 当前 Beta 推荐安装
+## 安装正式版
 
 ```bash
-npm install -g openclaw-companion@next
+npm install -g openclaw-companion@latest
 openclaw-companion setup --lang zh-CN
 ```
 
-npm 会为全新包的首次发布自动建立 `latest` 标签，因此不带标签目前也会安装这个 Beta。测试用户仍应明确使用 `@next`；正式版完成观察期后才推广无标签安装。
+已安装 Beta 的用户运行上面的安装命令即可升级；OpenClaw 配置和认证仍由官方管理。
 
 如需从源码验证，请克隆仓库，运行 `pnpm install --frozen-lockfile && pnpm build`，再使用 `node dist/cli.js`。
 

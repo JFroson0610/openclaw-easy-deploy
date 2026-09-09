@@ -5,22 +5,17 @@
 > A bilingual operations companion that safely orchestrates official OpenClaw setup, checks, upgrades, backups, repairs, and diagnostics.
 
 [![CI](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/ci.yml)
-[![npm beta](https://img.shields.io/npm/v/openclaw-companion/next?label=npm%20beta)](https://www.npmjs.com/package/openclaw-companion)
+[![npm](https://img.shields.io/npm/v/openclaw-companion)](https://www.npmjs.com/package/openclaw-companion)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status: v2 beta](https://img.shields.io/badge/status-v2%20beta-blue.svg)](https://github.com/JFroson0610/openclaw-easy-deploy/releases)
+[![Status: v2 stable](https://img.shields.io/badge/status-v2%20stable-green.svg)](https://github.com/JFroson0610/openclaw-easy-deploy/releases)
 [![Upstream compatibility](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/nightly.yml/badge.svg?branch=main)](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/nightly.yml)
 [![Telemetry: none](https://img.shields.io/badge/telemetry-none-success.svg)](SECURITY.md)
 
 [中文](#中文) · [English](#english)
 
-`2.0.0-beta.2` 修复 Windows npm 安装后的命令启动问题，并改进夜间测试的脱敏错误说明。Beta 用户继续使用 `@next` 获取已发布的修正版。
+v2.0.0 正式版：中英双语操作流程、Windows 启动修复、验证备份和本地脱敏诊断。安装或从 Beta 升级请使用 `npm install -g openclaw-companion@latest`。
 
-`2.0.0-beta.2` fixes command startup after Windows npm installation and improves redacted nightly failure reports. Beta users can continue using `@next` for published fixes.
-
-> [!IMPORTANT]
-> **v2 发布状态：** 已发布的 Beta 可通过 `openclaw-companion@next` 安装，具体版本见上方 npm 徽章。正式版仍需完成至少 14 天 Beta 观察，并解决所有 P0/P1 安全或安装问题。
->
-> **v2 release status:** Published betas are available through `openclaw-companion@next`; the npm badge above shows the published version. The stable release still requires at least 14 days of Beta observation and no unresolved P0/P1 security or installation issue.
+v2.0.0 stable: bilingual workflows, Windows startup fixes, verified backups, and local sanitized diagnostics. Install or upgrade from beta with `npm install -g openclaw-companion@latest`.
 
 > [!WARNING]
 > 这是社区项目，并非 OpenClaw 官方产品。OpenClaw 名称、商标和上游代码归其各自权利人所有。
@@ -65,14 +60,7 @@ OpenClaw 已经提供安装器、配置向导、Doctor、更新、备份和诊�
 
 上述 Node 范围是 Companion 自身的兼容范围。OpenClaw 新版本可能要求更高版本；例如 OpenClaw 2026.9.3 要求 Node 24.16+（24 系列）或 26.1+。新安装建议使用当前 Node 24 LTS，由官方安装器检查具体要求。
 
-当前 Beta：
-
-```bash
-npm install -g openclaw-companion@next
-openclaw-companion setup --lang zh-CN
-```
-
-npm 会为全新包的首次发布自动建立 `latest` 标签，因此不带标签目前也会得到这个 Beta。为清楚表达用途并方便未来切换，测试用户请始终显式使用 `@next`。正式版完成观察期后才会正式推广无标签安装：
+安装正式版（Beta 用户也使用同一命令升级）：
 
 ```bash
 npm install -g openclaw-companion
@@ -252,14 +240,7 @@ Requirements:
 
 The Node range above describes Companion itself. Newer OpenClaw releases can require newer Node versions; OpenClaw 2026.9.3 requires Node 24.16+ (24.x) or 26.1+. For new installs, use current Node 24 LTS and let the official installer check its requirements.
 
-Current Beta:
-
-```bash
-npm install -g openclaw-companion@next
-openclaw-companion setup
-```
-
-The npm registry automatically creates a `latest` tag for the first release of a new package, so an untagged install currently resolves to this Beta as well. Testers should explicitly use `@next` to make their intent clear and ease the later transition. Untagged installation will be promoted only after the stable-release gate is complete:
+Install the stable release (beta users can upgrade with the same command):
 
 ```bash
 npm install -g openclaw-companion
