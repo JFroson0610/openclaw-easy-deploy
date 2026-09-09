@@ -19,7 +19,7 @@ jobs:
           version: 11.19.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 24.15.0
+          node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
       - name: Publish beta
-        if: vars.NPM_TRUSTED_PUBLISHING_READY == 'true' && contains(github.ref_name, 'beta')
+        if: contains(github.ref_name, 'beta')
         shell: bash
         run: |
           package_name=$(node -p "require('./package.json').name")
@@ -39,7 +39,7 @@ jobs:
             npm publish --provenance --access public --tag next
           fi
       - name: Publish stable
-        if: vars.NPM_TRUSTED_PUBLISHING_READY == 'true' && !contains(github.ref_name, 'beta')
+        if: ${{ !contains(github.ref_name, 'beta') }}
         shell: bash
         run: |
           package_name=$(node -p "require('./package.json').name")

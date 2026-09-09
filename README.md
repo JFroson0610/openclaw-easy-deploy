@@ -12,6 +12,10 @@
 
 [中文](#中文) · [English](#english)
 
+`2.0.0-beta.2` 修复 Windows npm 安装后的命令启动问题，并改进夜间测试的脱敏错误说明。Beta 用户继续使用 `@next` 获取已发布的修正版。
+
+`2.0.0-beta.2` fixes command startup after Windows npm installation and improves redacted nightly failure reports. Beta users can continue using `@next` for published fixes.
+
 > [!IMPORTANT]
 > **v2 发布状态：** `2.0.0-beta.1` 已发布到 npm，推荐明确使用 `openclaw-companion@next` 安装。正式版仍需完成至少 14 天 Beta 观察，并解决所有 P0/P1 安全或安装问题。
 >
@@ -57,6 +61,8 @@ OpenClaw 已经提供安装器、配置向导、Doctor、更新、备份和诊�
 - Windows 10/11、macOS 13+、Ubuntu 22.04/24.04 或 Debian 12。
 - Node.js 22.22.3+、24.15+、25.9+ 或 26；明确不支持 Node 23。
 - OpenClaw 2026.5.29 或更高版本；若缺失，兼容启动器会在确认后调用官方安装器。
+
+上述 Node 范围是 Companion 自身的兼容范围。OpenClaw 新版本可能要求更高版本；例如 OpenClaw 2026.9.3 要求 Node 24.16+（24 系列）或 26.1+。新安装建议使用当前 Node 24 LTS，由官方安装器检查具体要求。
 
 当前 Beta：
 
@@ -242,6 +248,8 @@ Requirements:
 - Windows 10/11, macOS 13+, Ubuntu 22.04/24.04, or Debian 12.
 - Node.js 22.22.3+, 24.15+, 25.9+, or 26; Node 23 is explicitly unsupported.
 - OpenClaw 2026.5.29 or newer. When it is missing, the compatibility launcher asks before invoking the official installer.
+
+The Node range above describes Companion itself. Newer OpenClaw releases can require newer Node versions; OpenClaw 2026.9.3 requires Node 24.16+ (24.x) or 26.1+. For new installs, use current Node 24 LTS and let the official installer check its requirements.
 
 Current Beta:
 

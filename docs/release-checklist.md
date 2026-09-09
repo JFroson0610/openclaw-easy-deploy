@@ -24,6 +24,17 @@ This checklist separates completed engineering work from owner-only publication 
 
 ## Beta observation
 
+### `2.0.0-beta.2` maintenance
+
+- [x] Fix npm-installed Windows OpenClaw startup without enabling a shell.
+- [x] Add Windows process regression tests and redacted nightly failure output.
+- [x] Include current bilingual README in the package.
+- [ ] Verify PR CI and official stable OpenClaw smoke checks on all three platforms.
+- [ ] Publish beta.2 to npm `next` and verify the registry package.
+- [ ] Create the matching GitHub prerelease.
+
+### Stable-release gates
+
 - [ ] Run Beta for at least 14 days.
 - [ ] Keep all required three-platform checks green.
 - [ ] Resolve every P0/P1 security or installation issue.
