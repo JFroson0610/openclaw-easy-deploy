@@ -7,7 +7,8 @@
 [![CI](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/ci.yml)
 [![npm beta](https://img.shields.io/npm/v/openclaw-companion/next?label=npm%20beta)](https://www.npmjs.com/package/openclaw-companion)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status: v2 beta](https://img.shields.io/badge/status-v2%20beta-blue.svg)](https://github.com/JFroson0610/openclaw-easy-deploy/releases/tag/v2.0.0-beta.1)
+[![Status: v2 beta](https://img.shields.io/badge/status-v2%20beta-blue.svg)](https://github.com/JFroson0610/openclaw-easy-deploy/releases)
+[![Upstream compatibility](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/nightly.yml/badge.svg?branch=main)](https://github.com/JFroson0610/openclaw-easy-deploy/actions/workflows/nightly.yml)
 [![Telemetry: none](https://img.shields.io/badge/telemetry-none-success.svg)](SECURITY.md)
 
 [中文](#中文) · [English](#english)
@@ -17,9 +18,9 @@
 `2.0.0-beta.2` fixes command startup after Windows npm installation and improves redacted nightly failure reports. Beta users can continue using `@next` for published fixes.
 
 > [!IMPORTANT]
-> **v2 发布状态：** `2.0.0-beta.1` 已发布到 npm，推荐明确使用 `openclaw-companion@next` 安装。正式版仍需完成至少 14 天 Beta 观察，并解决所有 P0/P1 安全或安装问题。
+> **v2 发布状态：** 已发布的 Beta 可通过 `openclaw-companion@next` 安装，具体版本见上方 npm 徽章。正式版仍需完成至少 14 天 Beta 观察，并解决所有 P0/P1 安全或安装问题。
 >
-> **v2 release status:** `2.0.0-beta.1` is available from npm. Install the explicit `openclaw-companion@next` tag. The stable release still requires at least 14 days of Beta observation and no unresolved P0/P1 security or installation issue.
+> **v2 release status:** Published betas are available through `openclaw-companion@next`; the npm badge above shows the published version. The stable release still requires at least 14 days of Beta observation and no unresolved P0/P1 security or installation issue.
 
 > [!WARNING]
 > 这是社区项目，并非 OpenClaw 官方产品。OpenClaw 名称、商标和上游代码归其各自权利人所有。
