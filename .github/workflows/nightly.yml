@@ -1,6 +1,8 @@
 name: OpenClaw nightly compatibility
 
 on:
+  pull_request:
+    paths: ["src/**", "test/**", ".github/workflows/nightly.yml", "package.json", "pnpm-lock.yaml"]
   schedule:
     - cron: "23 3 * * *"
   workflow_dispatch:
@@ -22,7 +24,7 @@ jobs:
           version: 11.19.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 24.15.0
+          node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build

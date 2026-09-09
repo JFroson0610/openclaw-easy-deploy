@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0-beta.2
+
+- Fixed Windows npm-installed OpenClaw startup by invoking the installed JavaScript entry without a shell.
+- Added real Windows process tests, including paths with spaces and literal shell metacharacters.
+- Made failed nightly checks show redacted diagnostic output instead of `undefined`.
+- Run official stable-version compatibility checks on relevant pull requests before merging.
+- Include the current bilingual installation and release guidance in the npm package.
+
 ## 2.0.0-beta.1
 
 - Repositioned the project as OpenClaw Companion / OpenClaw 中文助手.

@@ -1,6 +1,6 @@
 # OpenClaw Companion 中文安装指南
 
-> `openclaw-companion@2.0.0-beta.1` 已发布到 npm 的 `next` 渠道。正式版仍需完成至少 14 天 Beta 观察，并解决所有 P0/P1 安全或安装问题。
+> Beta 通过 npm 的 `next` 渠道发布，旧版一键链接也会安装此渠道的修正版。正式版仍需完成至少 14 天 Beta 观察，并解决所有 P0/P1 安全或安装问题。
 
 ## 前置条件
 
