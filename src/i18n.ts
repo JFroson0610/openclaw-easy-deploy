@@ -60,6 +60,8 @@ const messages = {
     privacy: "不会读取、保存或上传 API Key、Token、Cookie 或聊天内容。",
     unavailable: "当前 OpenClaw 版本不支持此能力。",
     completed: "完成",
+    setupInteractiveRequired: "setup 需要交互式终端，或显式添加 --yes 确认。",
+    upgradePreviewVersion: "可升级到 {{version}}。",
   },
   en: {
     title: "OpenClaw Companion",
@@ -120,6 +122,8 @@ const messages = {
     privacy: "API keys, tokens, cookies, and chat content are never read, stored, or uploaded.",
     unavailable: "This capability is unavailable in the installed OpenClaw version.",
     completed: "Completed",
+    setupInteractiveRequired: "setup needs an interactive terminal or an explicit --yes.",
+    upgradePreviewVersion: "Can upgrade to {{version}}.",
   },
 } as const;
 

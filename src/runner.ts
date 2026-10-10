@@ -28,6 +28,13 @@ export function windowsOpenClawEntry(env: NodeJS.ProcessEnv): string | undefined
   return undefined;
 }
 
+// Non-interactive official commands get a bounded lifetime so a hung CLI
+// (unreachable gateway, stuck doctor, ...) can never wedge the companion.
+export const DEFAULT_COMMAND_TIMEOUT_MS = 5 * 60 * 1000;
+export const TIMED_OUT_EXIT_CODE = 124;
+// Keep memory bounded when an official command floods stdout/stderr.
+const MAX_OUTPUT_CHARS = 1024 * 1024;
+
 export class NodeCommandRunner implements CommandRunner {
   hadSpawnFailure = false;
 
@@ -51,6 +58,7 @@ export class NodeCommandRunner implements CommandRunner {
       });
     }
 
+    const timeoutMs = options.timeoutMs ?? DEFAULT_COMMAND_TIMEOUT_MS;
     return await new Promise((resolve) => {
       const child = spawn(executable, executableArgs, {
         stdio: ["ignore", "pipe", "pipe"],
@@ -59,14 +67,52 @@ export class NodeCommandRunner implements CommandRunner {
       });
       let stdout = "";
       let stderr = "";
-      child.stdout?.setEncoding("utf8").on("data", (chunk: string) => { stdout += chunk; });
-      child.stderr?.setEncoding("utf8").on("data", (chunk: string) => { stderr += chunk; });
+      let stdoutTruncated = false;
+      let stderrTruncated = false;
+      let settled = false;
+      let timedOut = false;
+      const append = (current: string, chunk: string) => {
+        if (current.length + chunk.length <= MAX_OUTPUT_CHARS) return { text: current + chunk, overflow: false };
+        return { text: (current + chunk).slice(0, MAX_OUTPUT_CHARS), overflow: true };
+      };
+      child.stdout?.setEncoding("utf8").on("data", (chunk: string) => {
+        const next = append(stdout, chunk);
+        stdout = next.text;
+        if (next.overflow) stdoutTruncated = true;
+      });
+      child.stderr?.setEncoding("utf8").on("data", (chunk: string) => {
+        const next = append(stderr, chunk);
+        stderr = next.text;
+        if (next.overflow) stderrTruncated = true;
+      });
+      const timer = timeoutMs > 0
+        ? setTimeout(() => {
+            timedOut = true;
+            child.kill();
+          }, timeoutMs)
+        : undefined;
+      const finish = (result: CommandResult) => {
+        if (settled) return;
+        settled = true;
+        if (timer) clearTimeout(timer);
+        resolve(result);
+      };
       child.once("error", (error) => {
         this.hadSpawnFailure = true;
-        resolve({ command, args, exitCode: 2, stdout, stderr: `${stderr}${error.message}` });
+        finish({ command, args, exitCode: 2, stdout, stderr: `${stderr}${error.message}` });
       });
       child.once("close", (code) => {
-        resolve({ command, args, exitCode: code ?? 2, stdout, stderr });
+        if (timedOut) {
+          finish({ command, args, exitCode: TIMED_OUT_EXIT_CODE, stdout, stderr: `${stderr}\ncommand timed out after ${timeoutMs}ms`.trim() });
+          return;
+        }
+        finish({
+          command,
+          args,
+          exitCode: code ?? 2,
+          stdout: stdoutTruncated ? `${stdout}\n[output truncated at ${MAX_OUTPUT_CHARS} chars]` : stdout,
+          stderr: stderrTruncated ? `${stderr}\n[output truncated at ${MAX_OUTPUT_CHARS} chars]` : stderr,
+        });
       });
     });
   }

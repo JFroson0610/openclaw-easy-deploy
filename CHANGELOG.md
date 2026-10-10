@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Bound every non-interactive official command with a 5-minute timeout so a hung OpenClaw CLI can no longer wedge the companion silently.
+- Capped captured stdout/stderr at 1 MiB per stream and marked truncated output.
+- Made `setup` refuse to guess in a non-interactive terminal without `--yes` instead of launching the interactive official wizard on closed stdin.
+- Named the candidate version in the `upgrade` preview when the official `update --dry-run` JSON provides one.
+- Run the `check` probes concurrently instead of serializing the report behind the slowest probe.
+- Narrowed the "unsupported capability" classifier so runtime errors containing "not found" stay errors instead of degrading to skipped.
+- Extracted the first version-like token from `openclaw --version` output so a trailing build date no longer overrides the real semver.
+
 ## 2.0.0
 
 - Promote the verified beta.2 functionality to the stable channel at the owner's request, without a mandatory observation period.
