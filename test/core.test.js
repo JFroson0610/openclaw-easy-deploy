@@ -5,7 +5,7 @@ import { resolveLocale, translator } from "../dist/i18n.js";
 import { extractOpenClawVersion, OpenClawAdapter, parseJsonLoose } from "../dist/openclaw.js";
 import { redact } from "../dist/redact.js";
 import { isOpenClawAtLeast, validateNodeVersion } from "../dist/version.js";
-import { backup, repair, upgrade } from "../dist/workflows.js";
+import { backup, repair, setup, upgrade } from "../dist/workflows.js";
 
 class FakeRunner {
   constructor(results) {
@@ -250,4 +250,66 @@ test("CLI emits a localized JSON error envelope for invalid arguments", () => {
   assert.equal(payload.locale, "zh-CN");
   assert.equal(payload.error.code, "unknown-option");
   assert.match(payload.error.message, /未知选项/);
+});
+
+test("setup refuses to guess in a non-interactive terminal without --yes", async () => {
+  const results = {
+    "openclaw --version": result(["--version"], 0, "openclaw 2026.8.1\n"),
+  };
+  const runner = new FakeRunner(results);
+  const ctx = { ...context(runner, { command: "setup", yes: false }), interactive: false };
+  const report = await setup(ctx);
+  assert.equal(report.overall, "warning");
+  assert.deepEqual(report.steps.map((entry) => entry.id), ["setup/terminal"]);
+  assert.deepEqual(runner.calls.map((call) => call.args), [["--version"]]);
+});
+
+test("upgrade preview names the candidate version when the official JSON provides one", async () => {
+  const previewArgs = ["update", "--dry-run", "--json"];
+  const runner = new FakeRunner({
+    [["openclaw", ...previewArgs].join(" ")]: result(previewArgs, 0, '{"availability":{"available":true,"latestVersion":"2026.9.9"}}'),
+  });
+  const report = await upgrade(context(runner, { command: "upgrade", dryRun: true }));
+  assert.equal(report.steps[0].id, "upgrade/preview");
+  assert.match(report.steps[0].summary, /2026\.9\.9/);
+});
+
+test("runtime 'not found' errors stay errors instead of degrading to unavailable", async () => {
+  const results = {
+    "openclaw --version": result(["--version"], 0, "2026.8.1"),
+    "openclaw status --all --json": result(["status", "--all", "--json"]),
+    "openclaw update status --json": result(["update", "status", "--json"]),
+    "openclaw gateway status --deep --json": result(["gateway", "status", "--deep", "--json"]),
+    "openclaw doctor --json": result(["doctor", "--json"], 1, "", "gateway process not found"),
+  };
+  const adapter = new OpenClawAdapter(new FakeRunner(results));
+  const { report } = await adapter.check("en", translator("en"), false);
+  assert.equal(report.checks.find((item) => item.id === "openclaw/doctor").status, "error");
+  assert.equal(report.overall, "error");
+});
+
+test("check runs the official probes concurrently", async () => {
+  const tracker = {
+    active: 0,
+    maxActive: 0,
+    calls: [],
+    async run(command, args) {
+      this.calls.push([command, ...args].join(" "));
+      this.active += 1;
+      this.maxActive = Math.max(this.maxActive, this.active);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      this.active -= 1;
+      if (args[0] === "--version") return { command, args, exitCode: 0, stdout: "openclaw 2026.8.1\n", stderr: "" };
+      return { command, args, exitCode: 0, stdout: "{}", stderr: "" };
+    },
+  };
+  const adapter = new OpenClawAdapter(tracker);
+  const { report } = await adapter.check("en", translator("en"), false);
+  assert.equal(report.overall, "ok");
+  assert.ok(tracker.maxActive >= 3, `expected concurrent probes, saw at most ${tracker.maxActive} active`);
+});
+
+test("extracts the first version-like token, not a later build date", () => {
+  assert.equal(extractOpenClawVersion("OpenClaw 1.4.2, built 2026.09.03"), "1.4.2");
+  assert.equal(extractOpenClawVersion("OpenClaw 2026.8.1 (ea80657)\n"), "2026.8.1");
 });

@@ -1,6 +1,6 @@
 import os from "node:os";
 import type { MessageKey } from "./i18n.js";
-import { OpenClawAdapter, parseJsonLoose } from "./openclaw.js";
+import { extractUpdateCandidate, OpenClawAdapter, parseJsonLoose } from "./openclaw.js";
 import { confirm, ask } from "./prompts.js";
 import { commandText } from "./runner.js";
 import { redact } from "./redact.js";
@@ -13,6 +13,8 @@ export interface WorkflowContext {
   locale: Locale;
   t: T;
   runner: CommandRunner;
+  /** Whether an interactive terminal is available; defaults to process.stdin.isTTY. */
+  interactive?: boolean;
   note(message: string): void;
   showResult(result: CommandResult): void;
 }
@@ -87,8 +89,13 @@ export async function setup(ctx: WorkflowContext): Promise<ActionReport> {
     }
   }
 
+  const interactive = ctx.interactive ?? Boolean(process.stdin.isTTY);
+  if (!ctx.options.yes && !interactive) {
+    steps.push(step("setup/terminal", "warning", ctx.t("setupInteractiveRequired")));
+    return report(ctx, "setup", steps);
+  }
   let choice = "3";
-  if (!ctx.options.yes && process.stdin.isTTY) choice = await ask(ctx.t("chooseSetup"));
+  if (!ctx.options.yes) choice = await ask(ctx.t("chooseSetup"));
   if (!["1", "2", "3", "4"].includes(choice)) {
     steps.push(step("setup/choice", "warning", ctx.t("invalidChoice")));
     return report(ctx, "setup", steps);
@@ -125,7 +132,11 @@ export async function backup(ctx: WorkflowContext, onlyConfig = false): Promise<
 export async function upgrade(ctx: WorkflowContext): Promise<ActionReport> {
   const steps: ActionStep[] = [];
   const preview = await run(ctx, "openclaw", ["update", "--dry-run", "--json"]);
-  steps.push(step("upgrade/preview", preview.exitCode === 0 ? "ok" : "error", preview.exitCode === 0 ? ctx.t("checkOk") : ctx.t("checkError"), preview));
+  const previewVersion = preview.exitCode === 0 ? extractUpdateCandidate(parseJsonLoose(preview.stdout)) : null;
+  const previewSummary = preview.exitCode === 0
+    ? (previewVersion ? `${ctx.t("checkOk")} ${ctx.t("upgradePreviewVersion").replace("{{version}}", previewVersion)}` : ctx.t("checkOk"))
+    : ctx.t("checkError");
+  steps.push(step("upgrade/preview", preview.exitCode === 0 ? "ok" : "error", previewSummary, preview));
   if (preview.exitCode !== 0 || ctx.options.dryRun) return report(ctx, "upgrade", steps);
 
   const backupReport = await backup(ctx);

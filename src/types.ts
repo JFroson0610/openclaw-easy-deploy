@@ -27,6 +27,7 @@ export interface CommandResult {
 export interface RunOptions {
   interactive?: boolean;
   env?: NodeJS.ProcessEnv;
+  timeoutMs?: number;
 }
 
 export interface CommandRunner {

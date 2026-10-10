@@ -103,7 +103,10 @@ function classifyParsed(id: string, parsed: unknown, t: T): Pick<CheckItem, "sta
 }
 
 function unsupported(result: CommandResult): boolean {
-  return /unknown (?:command|option)|unrecognized|not supported|not found/i.test(`${result.stderr}\n${result.stdout}`);
+  // Only explicit "this CLI does not know this command/option" signatures downgrade
+  // to "unavailable". Broad phrases like "not found" also appear in real runtime
+  // errors (e.g. "gateway process not found") and must stay errors.
+  return /unknown (?:command|option)|unrecognized (?:command|option|argument)|not supported|unsupported/i.test(`${result.stderr}\n${result.stdout}`);
 }
 
 function itemFromResult(id: string, result: CommandResult, t: T): CheckItem {
@@ -187,8 +190,14 @@ export class OpenClawAdapter {
       ];
       if (deep) commands.push(["openclaw/channels", ["channels", "status", "--probe", "--json"]]);
 
-      for (const [id, args] of commands) {
+      // The checks are independent; run them concurrently so one slow probe
+      // cannot serialize the whole report. Each run is bounded by the runner
+      // timeout. Results are re-assembled in declaration order.
+      const settled = await Promise.all(commands.map(async ([id, args]) => {
         const result = await this.runner.run("openclaw", args);
+        return { id, result };
+      }));
+      for (const { id, result } of settled) {
         results.push(result);
         checks.push(itemFromResult(id, result, t));
       }
@@ -209,8 +218,32 @@ export class OpenClawAdapter {
 }
 
 export function extractOpenClawVersion(output: string): string | null {
-  const dateVersion = output.match(/\b\d{4}\.\d{1,2}\.\d{1,2}(?:[-+][0-9A-Za-z.-]+)?\b/);
-  if (dateVersion) return dateVersion[0];
-  const semver = output.match(/\bv?\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?\b/);
-  return semver?.[0]?.replace(/^v/, "") ?? null;
+  // Take the earliest version-looking token: the version normally precedes
+  // build metadata (commit ids, build dates), so first-match wins.
+  const candidates = [
+    output.match(/\b\d{4}\.\d{1,2}\.\d{1,2}(?:[-+][0-9A-Za-z.-]+)?\b/),
+    output.match(/\bv?\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?\b/),
+  ]
+    .filter((match): match is RegExpMatchArray => match !== null)
+    .map((match) => ({ index: match.index ?? Number.MAX_SAFE_INTEGER, value: match[0] }))
+    .sort((left, right) => left.index - right.index);
+  return candidates[0]?.value.replace(/^v/, "") ?? null;
+}
+
+export function extractUpdateCandidate(parsed: unknown): string | null {
+  const root = record(parsed);
+  if (!root) return null;
+  const availability = child(root, "availability");
+  const registry = child(child(root, "update"), "registry");
+  const candidates = [
+    availability?.latestVersion,
+    availability?.nextVersion,
+    availability?.version,
+    registry?.latestVersion,
+    root.latestVersion,
+    root.nextVersion,
+    root.targetVersion,
+  ];
+  const found = candidates.find((value) => typeof value === "string" && /\d/.test(value));
+  return typeof found === "string" ? found : null;
 }

@@ -12,10 +12,10 @@ export function validateNodeVersion(version = process.versions.node): VersionChe
   if (major === 22 && (minor < 22 || (minor === 22 && patch < 3))) {
     return { ok: false, reason: "Node.js 22.22.3 or newer is required.", reasonCode: "node-too-old" };
   }
-  if (major === 24 && (minor < 15 || (minor === 15 && patch < 0))) {
+  if (major === 24 && minor < 15) {
     return { ok: false, reason: "Node.js 24.15.0 or newer is required.", reasonCode: "node-24-too-old" };
   }
-  if (major === 25 && (minor < 9 || (minor === 9 && patch < 0))) {
+  if (major === 25 && minor < 9) {
     return { ok: false, reason: "Node.js 25.9.0 or newer is required.", reasonCode: "node-25-too-old" };
   }
   return { ok: true };
