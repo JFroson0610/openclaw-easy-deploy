@@ -48,3 +48,25 @@ test("runner reports an unavailable executable", async () => {
   assert.equal(runner.hadSpawnFailure, true);
   assert.ok(result.stderr.length > 0);
 });
+
+test("runner bounds non-interactive commands with a timeout", async () => {
+  const runner = new NodeCommandRunner();
+  const started = Date.now();
+  const result = await runner.run(process.execPath, ["-e", "setTimeout(()=>{},30000)"], { timeoutMs: 200 });
+  assert.equal(result.exitCode, 124);
+  assert.match(result.stderr, /timed out/);
+  assert.ok(Date.now() - started < 10000, "timed-out command should not block for its full lifetime");
+});
+
+test("runner keeps captured output within the cap and marks truncation", async () => {
+  const runner = new NodeCommandRunner();
+  const result = await runner.run(
+    process.execPath,
+    ["-e", "process.stdout.write('x'.repeat(2*1024*1024))"],
+    { timeoutMs: 30000 },
+  );
+  assert.equal(result.exitCode, 0);
+  assert.ok(result.stdout.length >= 1024 * 1024);
+  assert.ok(result.stdout.length < 2 * 1024 * 1024);
+  assert.match(result.stdout, /truncated/);
+});
