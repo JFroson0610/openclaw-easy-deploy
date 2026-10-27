@@ -44,7 +44,7 @@
   "packageManager": "pnpm@11.19.0",
   "devDependencies": {
     "@types/node": "^24.0.0",
-    "markdownlint-cli2": "^0.23.2",
+    "markdownlint-cli2": "^0.24.0",
     "typescript": "^5.9.0"
   }
 }
